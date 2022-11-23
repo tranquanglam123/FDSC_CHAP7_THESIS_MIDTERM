@@ -1,0 +1,176 @@
+%Nội dung chương 2, phần Reshaping and Privoting
+\chapter{Tái định dạng và xoay dữ liệu}
+
+%Người 2 tiếp tục làm ở đây
+\par Có một số thao tác cơ bản để sắp xếp lại dữ liệu dạng bảng. Chúng được gọi luân phiên là các hoạt động định hình lại hoặc trục .
+
+%Reshaping with Hierrachical Indexing
+\section{Tái định dạng với đánh dấu theo kiểu thứ bậc}
+\par\textup Lập chỉ mục theo cấp bậc cung cấp một cách nhất quán để sắp xếp lại dữ liệu trong DataFrame.
+\par\textup Có hai hành động chính:
+\par\quad\textup$\bullet$ stack: xoay từ các cột trong dữ liệu sang các hàng 
+\par\quad\textup$\bullet$ unstack: xoay từ các hàng vào các cột
+\par\textup Ta sẽ minh họa các hoạt động này thông qua một loạt các ví dụ. Hãy xem xét một DataFrame nhỏ với các mảng chuỗi dưới dạng chỉ mục hàng và cột:
+\par\quad\textup In [94]: data = DataFrame(np.arange(6).reshape((2, 3)),
+\par\quad\quad\quad\textup ....:\quad\quad\quad\quad index=pd.Index(['Ohio', 'Colorado'], name='state'),
+\par\quad\quad\quad\textup ....:\quad\quad\quad\quad columns=pd.Index(['one', 'two', 'three'], name='number'))
+\par\quad\textup In [95]: data
+\par\quad\textup Out[95]:
+\par\quad\textup number one two three
+\par\quad\textup state
+\par\quad\textup Ohio\quad\quad 0\quad 1\quad 2
+\par\quad\textup Colorado 3\quad 4\quad 5
+\par\quad\textup Sử dụng phương thức ngăn xếp trên dữ liệu này sẽ chuyển các cột thành các hàng, tạo ra một series:
+\par\quad\textup In [96]: result = data.stack()
+\par\quad\textup In [97]: result
+\par\quad\textup Out[97]:
+\par\quad\textup state\quad\quad\quad\quad number
+\par\quad\textup Ohio\quad\quad\quad\quad one\quad\quad\quad\quad 0
+\par\quad\textup \quad\quad\quad\quad\quad\quad two\quad\quad\qua\quadd\quad\quad 1
+\par\quad\textup\quad\quad\quad\quad\quad\quad three\quad\quad\quad\xspace 2
+\par\quad\textup Colorado\quad\quad one\quad\quad\quad\quad 3
+\par\quad\textup\quad\quad\quad\quad\quad\quad  two\quad\quad\quad\quad 4
+\par\quad\textup\quad\quad\quad\quad\quad\quad  three\quad\quad\quad 5
+\par\quad\textup Từ Series được lập chỉ mục theo cấp bậc, bạn có thể sắp xếp lại dữ liệu trở lại DataFrame bằng cách hủy ngăn xếp :
+\par\quad\textup In [98]: result.unstack()
+\par\quad\textup Out[98]:
+\par\quad\textup number one\quad two\quad three
+\par\quad\textup state
+\par\quad\textup Ohio\quad\quad 0\quad\quad 1\quad\quad 2
+\par\quad\textup Colorado 3\quad\quad 4\quad\quad 5
+\par Theo mặc định, mức trong cùng không được xếp chồng lên nhau (tương tự với ngăn xếp). Bạn có thể hủy xếp chồng một cấp độ khác bằng cách chuyển số hoặc tên cấp độ:
+\par\quad\textup In [99]: result.unstack(0)\quad\quad In [100]: result.unstack('state')
+\par\quad\textup Out[99]:\quad\quad\quad\quad\quad\quad\quad\quad\xspace Out[100]:
+\par\quad\textup state Ohio Colorado\quad\quad\quad\quad state Ohio Colorado
+\par\quad\textup number\quad\quad\quad\quad\quad\quad\quad\quad\quad number
+\par\quad\textup one\quad\quad 0\quad 3\quad\quad\quad\quad\quad\quad\quad one 0\quad 3
+\par\quad\textup two\quad\quad 1\quad 4\quad\quad\quad\quad\quad\quad\quad two 1\quad 4
+\par\quad\textup three\quad 2\quad 5\quad\quad\quad\quad\quad\quad\quad three 2\quad 5
+\par Unstacking có thể dẫn đến dữ liệu bị thiếu nếu tất cả các giá trị trong cấp độ không được tìm thấy trong mỗi nhóm con:
+\par\quad\textup In [101]: s1 = Series([0, 1, 2, 3], index=['a', 'b', 'c', 'd'])
+\par\quad\textup In [102]: s2 = Series([4, 5, 6], index=['c', 'd', 'e'])
+\par\quad\textup In [103]: data2 = pd.concat([s1, s2], keys=['one', 'two'])
+\par\quad\textup In [104]: data2.unstack()
+\par\quad\textup Out[104]:
+\par\quad\textup\quad\quad\quad\xspace a\quad b\quad c\quad d\quad e
+\par\quad\textup one\quad\quad 0\quad 1\quad 2\quad 3 NaN
+\par\quad\textup two NaN NaN\xspace\xspace 4\quad 5\quad 6
+\par\quad\textup Tính năng xếp chồng lọc ra dữ liệu bị thiếu theo mặc định, vì vậy hoạt động này dễ dàng đảo ngược:
+\par\quad\textup In [105]: data2.unstack().stack()\quad\quad In [106]: data2.unstack().stack(dropna=False)
+\par\quad\textup Out[105]:\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad Out[106]:
+\par\quad\xspace one\quad a\quad 0\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad one\quad a\quad 0
+\par\quad\quad\quad\xspace b\quad 1\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad b\quad 1
+\par\quad\quad\quad\xspace c\quad 2\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad c\quad 2
+\par\quad\quad\quad d\quad 3\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad d\quad 3
+\par\quad two\quad c\quad 4\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\xspace\xspace e\quad NaN
+\par\quad\quad\quad d\quad 5\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad two \quad a\quad NaN
+\par\quad\quad\quad e\quad 6\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad b\quad NaN
+\par\quad\quad\quad \quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad c\quad 4
+\par\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad d\quad 5
+\par\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad e\quad 6
+\par\quad\textup When unstacking in a DataFrame, the level unstacked becomes the lowest level in the
+\par\quad\textup result:
+\par\quad\textup In [107]: df = DataFrame({'left': result, 'right': result + 5},
+\par\quad\textup\quad .....: \quad\quad\quad columns=pd.Index(['left', 'right'], name='side'))
+\par\quad\textup In [108]: df
+\par\quad\textup Out[108]:
+\par\quad\textup side\quad\quad\quad\quad\quad\quad\quad left right
+\par\quad\textup state\quad\quad\quad number
+\par\quad\textup Ohio\quad\quad\quad one\quad\quad 0\quad 5
+\par\quad\textup\quad\quad\quad\quad\quad two\quad\quad 1\quad 6
+\par\quad\textup\quad\quad\quad\quad\quad three\quad\xspace\xspace 2\quad 7
+\par\quad\textup Colorado\quad one\quad\quad 3\quad 8
+\par\quad\textup\quad\quad\quad\quad\quad two\quad\quad 4\quad 9
+\par\quad\quad\quad\quad\quad\quad three\quad 5\xspace\quad 10
+\par\quad\textup In [109]: df.unstack('state')\quad\quad\quad\quad\quad In [110]: df.unstack('state').stack('side')
+\par\quad\textup Out[109]:\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad Out[110]:
+\par\quad\textup side left\quad\quad\quad\quad\quad\quad right\quad\quad\quad\quad\quad state\quad\quad\quad\quad\quad\quad\quad Ohio\quad\quad\quad Colorado
+\par\quad\textup state Ohio Colorado Ohio Colorado\quad\xspace number\quad\quad side
+\par\quad\textup number\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad one\quad\quad\quad\quad left\quad\quad\quad 0\quad\quad\quad\quad\quad 3
+\par\quad\textup one\quad\quad 0\quad\quad\quad 3\quad\quad 5\quad\quad\quad 8\quad\quad\quad\quad\quad\quad\quad\quad right\quad\quad\xspace 5\quad\quad\quad\quad\quad 8
+\par\quad\textup two\quad\quad 1\quad\quad\quad 4\quad\quad 6\quad\quad\quad 9\quad\quad\quad two\quad\quad\quad\quad left\xspace\quad\quad 1\quad\quad\quad\quad\quad 4
+\par\quad\textup three\quad 2\quad\quad\quad 5\quad\quad 7\quad\quad\quad 10\quad\quad\quad\quad\quad\quad\quad\quad right\quad\quad 6\quad\quad\quad\quad\quad 9
+\par\quad\textup\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad three\quad\quad\quad\quad left\xspace\quad\quad 2\quad\quad\quad\quad\quad 5
+\par\quad\textup\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad right\xspace\quad 7\quad\quad\quad\quad\quad 10
+%Pivoting from "long" to "wide" format
+\section{Xoay từ định dạng "dài" sang "rộng"}
+\par\quad\textup Một cách phổ biến để lưu trữ nhiều chuỗi thời gian trong cơ sở dữ liệu và CSV được gọi là định dạng dài hoặc xếp chồng :
+
+\par\quad\textup In [116]: ldata[:10]
+\par\quad\textup Out[116]:
+\par\quad\textup\quad\quad\quad\quad\quad\quad\quad  date\quad\quad item\quad\quad value
+\par\quad\textup 0 1959-03-31 00:00:00\quad realgdp\quad 2710.349
+\par\quad\textup 1 1959-03-31 00:00:00\quad\quad infl\quad\quad 0.000
+\par\quad\textup 2 1959-03-31 00:00:00\quad unemp\quad\xspace\xspace 5.800
+\par\quad\textup 3 1959-06-30 00:00:00\quad realgdp \quad2778.801
+\par\quad\textup 4 1959-06-30 00:00:00\quad\quad infl\quad\quad 2.340
+\par\quad\textup 5 1959-06-30 00:00:00\quad unemp\quad\quad 5.100
+\par\quad\textup 6 1959-09-30 00:00:00\quad realgdp\quad 2775.488
+\par\quad\textup 7 1959-09-30 00:00:00\quad\quad infl\quad\quad 2.740
+\par\quad\textup 8 1959-09-30 00:00:00\quad unemp\quad\xspace\xspace 5.300
+\par\quad\textup 9 1959-12-31 00:00:00\quad realgdp\quad 2785.204
+\par\quad\textup Dữ liệu thường được lưu trữ theo cách này trong cơ sở dữ liệu quan hệ như MySQL dưới dạng lược đồ cố định (tên cột và kiểu dữ liệu) cho phép số lượng giá trị riêng biệt trong cột mục tăng hoặc
+giảm khi dữ liệu được thêm hoặc xóa trong bảng. Trong ví dụ trên , ngày và mục thường sẽ là khóa chính (theo cách nói của cơ sở dữ liệu quan hệ), cung cấp cả tính toàn vẹn của quan hệ cũng như các truy vấn lập trình và tham gia dễ dàng hơn trong nhiều trường hợp. Tất nhiên, nhược điểm là dữ
+liệu có thể không dễ làm việc với định dạng dài; bạn có thể muốn có một Khung dữ liệu chứa một cột cho mỗi giá trị mục riêng biệt được lập chỉ mục theo dấu thời gian trong cột ngày . Phương pháp trục của DataFrame trên mỗi biểu mẫu chính xác là phép biến đổi này: Trong [117]: pivoted =
+ldata.pivot('date', 'item', 'value')
+\par\quad\textup In [117]: pivoted = ldata.pivot('date', 'item', 'value')
+\par\quad\textup In [118]: pivoted.head()
+\par\quad\textup Out[118]:
+\par\quad\textup item\quad\quad\quad\quad infl\quad realgdp\quad unemp
+\par\quad date
+\par\quad\textup 1959-03-31\quad 0.00\quad 2710.349\quad 5.8
+\par\quad\textup 1959-06-30\quad 2.34\quad 2778.801\quad 5.1
+\par\quad\textup 1959-09-30\quad 2.74\quad 2775.488\quad 5.3
+\par\quad\textup 1959-12-31\quad 0.27\quad 2785.204\quad 5.6
+\par\quad\textup 1960-03-31\quad 2.31\quad 2847.699\quad 5.2
+\par\quad\textup Hai giá trị đầu tiên được chuyển là các cột được sử dụng làm chỉ mục hàng và cột, cuối cùng là cột giá trị tùy chọn để điền vào Khung dữ liệu. Giả sử bạn có hai cột giá trị mà bạn muốn định hình lại đồng thời:
+
+\par\quad\textup In [119]: ldata['value2'] = np.random.randn(len(ldata))
+\par\quad\textup In [120]: ldata[:10]
+\par\quad\textup Out[120]:
+\par\quad\textup\quad\quad\quad\quad\quad\quad\quad\quad\quad date\quad\quad item\quad\quad value\quad\quad value2
+\par\quad\textup 0\quad 1959-03-31\quad 00:00:00\quad\quad realgdp\quad 2710.349 1.669025
+\par\quad\textup 1\quad 1959-03-31\quad 00:00:00\quad\quad infl\quad\quad\quad 0.000\quad -0.438570
+\par\quad\textup 2\quad 1959-03-31\quad 00:00:00\quad\quad unemp\quad 5.800\quad -0.539741
+\par\quad\textup 3\quad 1959-06-30\quad 00:00:00\quad\quad realgdp\quad 2778.801 0.476985
+\par\quad\textup 4\quad 1959-06-30\quad 00:00:00\quad\quad infl\quad\quad\quad 2.340\quad 3.248944
+\par\quad\textup 5\quad 1959-06-30\quad 00:00:00\quad\quad unemp\quad 5.100\quad -1.021228
+\par\quad\textup 6\quad 1959-09-30\quad 00:00:00\quad\quad realgdp\quad 2775.488 -0.577087
+\par\quad\textup 7\quad 1959-09-30\quad 00:00:00\quad\quad infl\quad\quad\quad 2.740\quad 0.124121
+\par\quad\textup 8\quad 1959-09-30\quad 00:00:00\quad\quad unemp\quad 5.300\quad 0.302614
+\par\quad\textup 9\quad 1959-12-31\quad 00:00:00\quad\quad realgdp\quad 2785.204\quad 0.523772
+\par\quad\textup Bằng cách bỏ qua đối số cuối cùng, bạn có được DataFrame với các cột phân cấp:
+\par\quad\textup In [121]: pivoted = ldata.pivot('date', 'item')
+\par\quad\textup In [122]: pivoted[:5]
+\par\quad\textup Out[122]:
+\par\quad\textup\quad\quad\quad\quad\quad\quad  value\quad\quad\quad\quad\quad\quad\quad value2
+\par\quad\textup item\quad\quad\quad\quad infl\quad realgdp\quad unemp\quad infl\quad\quad\quad realgdp\quad\quad\quad unemp
+\par\quad\textup date
+\par\quad\textup 1959-03-31\quad 0.00\quad 2710.349\quad 5.8\quad -0.438570\quad 1.669025\quad -0.539741
+\par\quad\textup 1959-06-30\quad 2.34\quad 2778.801\quad 5.1\quad 3.248944\quad 0.476985\quad -1.021228
+\par\quad\textup 1959-09-30\quad 2.74\quad 2775.488\quad 5.3\quad 0.124121\quad -0.577087\quad 0.302614
+\par\quad\textup 1959-12-31\quad 0.27\quad 2785.204\quad 5.6\quad 0.000940\quad 0.523772\quad 1.343810
+\par\quad\textup 1960-03-31\quad 2.31\quad 2847.699\quad 5.2\quad -0.831154\quad -0.713544\quad -2.370232
+\par\quad\textup In [123]: pivoted['value'][:5]
+\par\quad\textup Out[123]:
+\par\quad\textup item\quad\quad\quad infl\quad\quad realgdp\quad unemp
+\par\quad date
+\par\quad\textup 1959-03-31 0.00\quad 2710.349\quad 5.8
+\par\quad\textup 1959-06-30 2.34\quad 2778.801\quad 5.1
+\par\quad\textup 1959-09-30 2.74\quad 2775.488\quad 5.3
+\par\quad\textup 1959-12-31 0.27\quad 2785.204\quad 5.6
+\par\quad\textup 1960-03-31 2.31\quad 2847.699\quad 5.2
+\par\quad\textup Lưu ý rằng trục xoay chỉ là lối tắt để tạo chỉ mục phân cấp bằng cách sử dụng set\textunderscore index và định hình lại bằng unstack:
+\par\quad\textup In [124]: unstacked = ldata.set\textunderscore index(['date', 'item']).unstack('item')
+\par\quad\textup In [125]: unstacked[:7]
+\par\quad\textup Out[125]:
+\par\quad\textup\quad\quad\quad\quad\quad value\quad\quad\quad\quad\quad\quad\quad\quad\quad value2
+\par\quad\textup item\quad\quad\quad\quad infl\quad\quad realgdp\quad unemp\quad infl\quad\quad realgdp\quad\quad unemp
+\par\quad date
+\par\quad\textup 1959-03-31\quad 0.00\quad 2710.349\quad 5.8\quad -0.438570\quad 1.669025\quad -0.539741
+\par\quad\textup 1959-06-30\quad 2.34\quad 2778.801\quad 5.1\quad 3.248944\quad 0.476985\quad -1.021228
+\par\quad\textup 1959-09-30\quad 2.74\quad 2775.488\quad 5.3\quad 0.124121\quad -0.577087\quad 0.302614
+\par\quad\textup 1959-12-31\quad 0.27\quad 2785.204\quad 5.6\quad 0.000940\quad 0.523772\quad 1.343810
+\par\quad\textup 1960-03-31\quad 2.31\quad 2847.699\quad 5.2\quad -0.831154\quad -0.713544\quad -2.370232
+\par\quad\textup 1960-06-30\quad 0.14\quad 2834.390\quad 5.2\quad -0.860757\quad -1.860761\quad 0.560145
+\par\quad\textup 1960-09-30\quad 2.70\quad 2839.022\quad 5.6\quad 0.119827\quad -1.265934\quad -1.063512

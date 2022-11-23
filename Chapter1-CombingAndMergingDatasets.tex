@@ -1,0 +1,421 @@
+%Nội dung của chương sẽ ghi vào đây, sau đó import vào main
+%Combining and Merging Data Sets : 2 người
+%Người 1: Database-Style Dataframe Merges đến hết Concatenating Along an Axis
+%Người 2: Combining Data Overlap đến Chapter3: hết Replacing Values
+\chapter{KẾT HỢP VÀ GỘP CÁC TẬP DỮ LIỆU}
+\begin{introchap1}
+    Dữ liệu lưu trữ trong các đối tượng pandas có thể được gộp lại với nhiều cách đã được tích hợp sẵn trong thư viện này:\par
+    \hfill\begin{minipage}{\dimexpr\textwidth-1cm}
+\xdef\tpd{\the\prevdepth}
+    $\bullet$\textbf{pandas.merge}
+   nối các hàng trong các DataFrames dựa trên một hoặc nhiều từ khóa. Cách kết nối này khá quen thuộc với người sử dụng SQL hoặc các cơ sở dữ liệu kiểu khác vì cách dùng toán tử join của cơ sở dữ liệu .\par
+   $\bullet$\textbf{pandas.concat}
+   nối hoặc xếp các đối tượng dọc theo một cột.\par
+   $\bullet$\textbf{combinefirst} 
+   phương thức cho cắt lát các dữ liệu chồng lặp để tìm ra giá trị cho các ô trống trong một đối tượng với giá trị của các đối tượng khác.\par
+\end{minipage}
+    Phần báo cáo này sẽ đề cập đến tất cả các phương thức trên và đưa ra các ví dụ. Tất cả đều được tối ưu trong trong phần báo cáo này.
+\end{introchap1}
+
+\sffamily
+%Người 1 bắt đầu làm ở đây
+%Database-style DataFrame Merges, trang 178
+\section{Gộp các tập dữ liệu DataFrame}
+Các phương thức Merge hoặc Join kết hợp các tập dữ liệu bằng cách kết nối các hàng sử dụng một hoặc nhiều từ khóa.Các toán tử này là trung tâm của các tập dữ liệu tương quan. Hàm \textbf{merge} trong pandas là cách chính để sử dụng các thuật toán này trong dữ liệu của người dùng.\par
+Hãy bắt đầu với một ví dụ đơn giản:\par
+    \quad\textup{In [15]: df1 = DataFrame({'key': ['b','b','a','c','c','a','a','b'], 'data1': range(7)})}\par
+    \par
+    \quad\textup{In [16]: df2 = DataFrame({'key': ['b','a','d'], 'data2': range(3)})}\par
+    Đây là một ví dụ của trường hợp gộp nhiều tập dữ liệu thành một; tập dữ liệu trong \textup{df1} có nhiều hàng được gán nhãn \textup{a} và \textup{b}, trong khi \textup{df2} có mỗi 1 hàng cho mỗi giá trị trong cột key của nó. Gọi \textbf{merge} với mỗi đối tượng trên ta nhận được \par
+    \quad\textup{In [19]: pd.merge(df1, df2)}\par
+    \quad\textup{Out [19]: }\par
+    \quad\quad\textup{data1 key\quad data2}\par
+    \quad0 \quad\quad 2 \quad a \quad\quad 0\par
+    \quad1 \quad\quad 4 \quad a \quad\quad 0\par
+    \quad2 \quad\quad 5 \quad a \quad\quad 0\par
+    \quad3 \quad\quad 0 \quad b \quad\quad 1\par
+    \quad4 \quad\quad 1 \quad b \quad\quad 1\par
+    \quad5 \quad\quad 6 \quad b \quad\quad 1\par
+Để ý rằng ta không xác định cụ thể cột nào để dồn chúng lại. Nếu không xác định cụ thể, \textbf{merge} sử dụng các cột có tên lặp chồng làm các từ khóa. Đây là một bài tập tốt để xác định sự khác biệt, ví dụ: \par
+    \quad\textup{In [20]: pd.merge(df1, df2,on='key')}\par
+    \quad\textup{Out [20]: }\par
+    \quad\quad\textup{data1 key\quad data2}\par
+    \quad0 \quad\quad 2 \quad a \quad\quad 0\par
+    \quad1 \quad\quad 4 \quad a \quad\quad 0\par
+    \quad2 \quad\quad 5 \quad a \quad\quad 0\par
+    \quad3 \quad\quad 0 \quad b \quad\quad 1\par
+    \quad4 \quad\quad 1 \quad b \quad\quad 1\par
+    \quad5 \quad\quad 6 \quad b \quad\quad 1\par
+Nếu tên các cột khác nhau ở mỗi đối tượng, ta có thể xác định chúng riêng biệt: \par
+   \quad\textup{In [21]: df3 = DataFrame({'key': ['b','b','a','c','c','a','a','b'], 'data1': range(7)})}\par
+   \quad\textup{In [22]: df4 = DataFrame({'rkey': ['a','b','d'], 'data2': range(3)})}\par
+   \quad\textup{In [23]: pd.merge(df3, df4, leftOn='lkey', rightOn='rkey')}\par
+    \quad\textup{Out [23]: }\par 
+    \quad\quad\textup{data1 lkey\quad data2 \quad rkey}\par
+    \quad0 \quad\quad 2 \quad a \quad\quad 0\quad\quad\quad a\par
+    \quad1 \quad\quad 4 \quad a \quad\quad 0\quad\quad\quad a\par
+    \quad2 \quad\quad 5 \quad a \quad\quad 0\quad\quad\quad a\par
+    \quad3 \quad\quad 0 \quad b \quad\quad 1\quad\quad\quad b\par
+    \quad4 \quad\quad 1 \quad b \quad\quad 1\quad\quad\quad b\par
+    \quad5 \quad\quad 6 \quad b \quad\quad 1\quad\quad\quad b\par
+Ta nhận ra 2 khóa 'c' và 'd' và các dữ liệu liên quan đều bị thiếu trong phần đầu ra. Bởi \textbf{merge} thực hiện dồn trong \textbf{'inner'}; từ khóa trong kết quả đầu ra là các phần giao thoa của 2 tập dữ liệu. Các lựa chọn có thể khác đó là \textbf{'left'}, \textbf{'right'}, và \textbf{'outer'}. Lựa chọn gộp \textbf{'outer'} hay nói cách khác là gộp kiểu ngoài, là kiểu gộp lấy phần gộp của các từ khóa, kết hợp gộp cả 2 tập dữ liệu lại:\par
+    \quad\textup{In [24]: pd.merge(df1 df2, how='outer')}\par
+    \quad\textup{Out[24]:}\par
+    \quad\quad\textup{data1 key\quad data2}\par
+    \quad0 \quad\quad 2 \quad a \quad\quad 0\par
+    \quad1 \quad\quad 4 \quad a \quad\quad 0\par
+    \quad2 \quad\quad 5 \quad a \quad\quad 0\par
+    \quad3 \quad\quad 0 \quad b \quad\quad 1\par
+    \quad4 \quad\quad 1 \quad b \quad\quad 1\par
+    \quad5 \quad\quad 6 \quad b \quad\quad 1\par
+    \quad6 \quad\quad 3 \quad b\quad NaN\par
+    \quad7\quad NaN \quad c \quad\quad 2 \par
+Để xác định kiểu kết hợp key nào sẽ hiển thị ở trong phần kết quả đầu ra phụ thuộc vào cách chọn trong phương thức merge, xét trường hợp nhiều từ khóa như việc hình thành một mảng các tuples để sử dụng như một từ khóa gộp riêng biệt(mặc dù cách thức gộp không hẳn là như vậy). \par
+Vấn đề cuối cùng cần xem xét trong khi dùng các phương thức gộp đó là cách xử lý các cột có tên trùng lặp. Trong khi ta có thể chỉ đến vị trí trùng lặp một cách thủ công( trong phần đổi tên các cột ở sau này), \textbf{merge} có một lựa chọn cho chỉ cụ thể các chuỗi mang giá trị tên trùng lặp trong các DataFrame được gộp: \par
+    \quad\textup{In [34]: pd.merge(df1 df2, how='outer')}\par
+    \quad\textup{Out[34]:}\par
+    \quad\quad\textup{ key1 key2x\quad lval\quad key2y \quad rval } \par
+    \quad0 \quad bar \quad one \quad \quad 3 \quad one \quad \quad 6 \par
+    \quad1 \quad bar \quad one \quad \quad 3 \quad two \quad \quad 7 \par
+    \quad2 \quad foo \quad one \quad \quad 1 \quad one \quad \quad 4 \par
+    \quad3 \quad foo \quad one \quad \quad 1 \quad one \quad \quad 5 \par
+    \quad4 \quad foo \quad two \quad \quad 2 \quad one \quad \quad 4 \par
+    \quad5 \quad foo \quad two \quad \quad 2 \quad one \quad \quad 5 \par
+
+\quad\textup{In [35]: pd.merge(left, right, on='key1', suffixes=('Left','Right'))}\par
+    \quad\textup{Out[35]:}\par
+    \quad\quad\textup{ key1 key2Left\quad lval\quad key2Right\quad rval } \par
+    \quad0 \quad bar \quad \quad one \quad \quad 3 \quad \quad \quad one \quad \quad 6 \par
+   \quad1 \quad bar \quad \quad one \quad \quad 3 \quad \quad \quad two \quad \quad 7 \par
+    \quad2 \quad foo \quad \quad one \quad \quad 1 \quad \quad \quad one \quad \quad 4 \par
+   \quad3 \quad foo \quad \quad one \quad \quad 1 \quad \quad \quad one \quad \quad 5 \par
+   \quad4 \quad foo \quad \quad two \quad \quad 2 \quad \quad \quad one \quad \quad 4 \par
+   \quad5 \quad foo \quad \quad two \quad \quad 2 \quad \quad \quad one \quad \quad 5 \\ \par
+Coi Bảng \textbf{1.1} để hiểu thêm về tham chiếu các đối số trong hàm \textbf{merge}. Gộp theo chỉ số sẽ là chủ để của phần tiếp theo  \par
+
+\begin{table}[h]
+\centering
+    \begin{tabular}{l|p{10cm}}
+      \textbf{ Tham số}  & \textbf{Mô tả} \\
+left & DataFrame được gộp ở bên trái(đầu tiên) \\ 
+right & DataFrame được gộp ở bên phải(sau )\\
+how & Cách gộp, inner hay outer, left hay right, inner là mặc định  \\
+on     &  Tên cột bắt đầu gộp, phải có ở cả 2 DataFrame.\\
+left\_on   & Cột ở DataFrame bên trái để bắt đầu gộp \\
+right\_on & Tương tự như left\_on đối với DataFrame bên phải  \\
+left\_index   &  Chỉ số của cột DataFrame bên trái để bắt đầu gộp \\
+right\_index & Tương tự như left\_index \\
+sort  & Sắp xếp và lọc dữ liệu dựa theo các key \\
+suffixes  & Các tupple chứa dữ liệu để thêm vào tên các cột bị chồng lặp \\
+copy & Nếu giá trị này False thì tránh copy dữ liệu vào trong cấu trúc kết quả 
+    \end{tabular}
+    \caption{Các tham số của hàm \textbf{merge}}
+    \label{tab:table1}
+\end{table}
+
+
+%Merging on Index, trang 182
+\section{Gộp theo chỉ số}
+Trong một số trường hợp, từ khóa gộp hay các từ khóa trong DataFrames sẽ là các chỉ số của các cột. Trong trường hợp này, ta có thể dùng \textbf{leftIndex=True} hoặc \textbf{rightIndex=True} hoặc cả hai để chỉ ra rằng chỉ số của các cột nên được dùng là các key: \par
+    \quad\textup{In [36]: left1 = DataFrame({'key': ['a','b','a','a','a','b','c'],'value': range(6)})}\par
+
+     \quad\textup{In [37]: right1 = $DataFrame({'group_val': [3.5, 7]}, index=['a', 'b'])$
+}\par
+     \quad\textup{In [38]: left1 }\par
+     \quad\textup{In [39]: right1}\par
+     \quad\textup{.....:}\par
+     \quad\textup{Out[38]: \quad\quad\quad\quad\quad Out[39]:}\par
+     \quad \quad key \quad value \quad \quad\quad\quad\quad groupVal \par
+     \quad 0 \quad a \quad \quad \quad 0 \quad\quad\quad a \quad\quad\quad 3.5 \par
+     \quad 1 \quad b \quad \quad \quad 1 \quad\quad\quad a \quad\quad\quad 7.0 \par
+     \quad 2 \quad a \quad \quad \quad 2  \par
+     \quad 3 \quad a \quad \quad \quad 3 \par
+     \quad 4 \quad b \quad \quad \quad 4 \par
+     \quad 5 \quad c \quad \quad \quad 5 \\ \par
+     \quad\textup{In [40]: pd.merge(left1, right1, leftOn='key', rightIndex=True) }\par
+    \quad\textup{Out[40]:}\par
+    \quad \quad key \quad value \quad  groupVal \par
+     \quad 0 \quad a \quad \quad \quad 0  \quad\quad\quad 3.5 \par
+     \quad 1 \quad b \quad \quad \quad 1 \quad\quad\quad 3.5 \par
+     \quad 2 \quad a \quad \quad \quad 2  \quad\quad\quad 3.5 \par
+     \quad 3 \quad a \quad \quad \quad 3 \quad\quad\quad 7.0 \par
+     \quad 4 \quad b \quad \quad \quad 4 \quad\quad\quad 7.0 \par
+     \quad 5 \quad c \quad \quad \quad 5 \quad\quad\quad NaN \par
+     Kỹ thuật đánh dấu dữ liệu theo cấp độ sẽ phức tạp hơn: \par
+     \quad\textup{In [42]: lefth = DataFrame({'key1': ['Ohio', 'Ohio', 'Ohio', 'Nevada', 'Nevada'], }}\par
+     \quad\quad\textup{.....: \quad\quad\quad\quad\quad\quad\quad\quad 'key2': [2000, 2001, 2002, 2001, 2002],}\par
+     \quad\quad\textup{.....: \quad\quad\quad\quad\quad\quad\quad\quad 'data': np.arange(5.)}\par
+    \quad\textup{In [44]: lefth}\par
+    \quad\textup{n [45]: righth}\par
+    \quad\textup{Out[44]: \quad\quad\quad\quad\quad Out[45]:}\par
+     \quad \quad \quad data \quad\quad key1 \quad\quad key2 \quad\quad\quad\quad\quad\quad\quad\quad\quad\quad event1 \quad event2 \par
+     \quad 0 \quad \quad \quad 0 \quad Ohio \quad\quad 2000 \quad \quad \quad Nevada 2001 \quad \quad \quad 0 \quad \quad \quad 1 \par
+     \quad 1 \quad \quad \quad 1 \quad Ohio \quad\quad 2000 \quad \quad \quad Nevada 2000 \quad \quad \quad 0 \quad \quad \quad 3 \par
+     \quad 2 \quad \quad \quad 2 \quad Ohio \quad\quad 2000 \quad \quad \quad Ohio\quad 2000 \quad \quad \quad 0 \quad \quad \quad 5 \par
+     \quad 3 \quad \quad \quad 3 \quad Ohio \quad\quad 2000 \quad \quad \quad Ohio\quad 2000 \quad \quad \quad 0 \quad \quad \quad 7 \par
+     \quad 4 \quad \quad \quad 4 \quad Ohio \quad\quad 2000 \quad \quad \quad Ohio\quad 2001 \quad \quad \quad 0 \quad \quad \quad 9 \par
+     \quad  \quad \quad \quad  \quad \quad\quad \quad\quad\quad\quad \quad\quad \quad \quad \quad Ohio\quad 2002 \quad \quad \quad 10 \quad \quad  11 \\\par
+     
+     Trong trường hợp này, ta cần xác định nhiều cột để gộp thành một list(chú ý đến cách xử lý các chỉ số lặp): \par
+     \quad\textup{In [46]: $pd.merge(lefth, righth, left_on=['key1', 'key2'], right_index=True)$}\par
+     \quad\textup{Out[46]:}\par
+     \quad \quad \quad data \quad\quad\quad key1 \quad\quad key2 \quad event1 \quad event2 \par
+     \quad 3 \quad \quad \quad 3 \quad Nevada \quad\quad 2001 \quad \quad \quad 0 \quad \quad \quad 1 \par
+     \quad 0 \quad \quad \quad 0 \quad\quad Ohio \quad\quad 2000 \quad \quad \quad 4 \quad \quad \quad 5 \par
+     \quad 0 \quad \quad \quad 0 \quad\quad Ohio \quad\quad 2000 \quad \quad \quad 6 \quad \quad \quad 7 \par
+     \quad 1 \quad \quad \quad 1 \quad\quad Ohio \quad\quad 2000 \quad \quad \quad 8 \quad \quad \quad 9 \par
+     \quad 2 \quad \quad \quad 2 \quad\quad Ohio \quad\quad 2000 \quad \quad \quad 10 \quad \quad  11\\\par
+     
+     \quad\textup{In [47]: $pd.merge(lefth, righth, left_on=['key1', 'key2'],right_index=True, how='outer')$\\ \\ \\
+}\par
+     \quad\textup{Out[47]:}\par
+    \quad \quad \quad data \quad\quad\quad key1 \quad\quad key2 \quad event1 \quad event2 \par
+     \quad 4 \quad \quad NaN \quad Nevada \quad\quad 2000 \quad \quad \quad 2 \quad \quad \quad 3 \par
+     \quad 3 \quad \quad \quad 3 \quad Nevada \quad\quad 2001 \quad \quad \quad 0 \quad \quad \quad 1 \par
+     \quad 4 \quad \quad \quad 4 \quad\ Nevada  \quad\quad 2002 \quad \quad NaN \quad \quad NaN \par
+     \quad 0 \quad \quad \quad 0 \quad\quad Ohio \quad\quad 2000 \quad \quad \quad 4 \quad \quad \quad 5 \par
+     \quad 0 \quad \quad \quad 0 \quad\quad Ohio \quad\quad 2000 \quad \quad \quad 6 \quad \quad \quad 7 \par
+     \quad 1 \quad \quad \quad 1 \quad\quad Ohio \quad\quad 2001 \quad \quad \quad 8 \quad \quad \quad 9 \par
+     \quad 2 \quad \quad \quad 2 \quad\quad Ohio \quad\quad 2002 \quad \quad \quad 10 \quad \quad  11\\\par
+     
+     Sử dụng chỉ số của cả hai mảng hợp cũng không phải là một vấn đề quá khó: \par
+     \quad\textup{In [48]: left2 = DataFrame([[1., 2.], [3., 4.], [5., 6.]], index=['a', 'c', 'e'],columns=['Ohio', 'Nevada'])}\par
+     \quad\textup{In [49]: right2 = DataFrame([[7., 8.], [9., 10.], [11., 12.], [13, 14]],index=['b', 'c', 'd', 'e'], columns=['Missouri', 'Alabama'])}\par
+     \quad\textup{In [50]: left2 \quad\quad\quad\quad\quad In [51]: right2}\par
+     \quad\textup{Out[50]: \quad\quad \quad\quad\quad\quad\quad Out[51]:}\par
+     \quad \quad  Ohio \quad Nevada \quad\quad\quad\quad \quad\quad Missouri \quad Alabama  \par
+     \quad a \quad \quad 1 \quad\quad \quad 2 \quad\quad\quad\quad b \quad \quad \quad\quad 7 \quad \quad \quad\quad 8 \par
+     \quad c \quad \quad 3 \quad\quad \quad 4 \quad\quad\quad\quad c \quad \quad \quad\quad 9 \quad \quad \quad\quad 10 \par
+     \quad e \quad \quad 5 \quad\quad \quad 6 \quad\quad\quad\quad d \quad \quad \quad\quad 11 \quad \quad \quad\quad 12 \\ \par
+    DataFrame có nhiều biến thể của \textbf{join} bằng cách gộp theo chỉ số. Ta cũng có thể gộp nhiều DataFrame bằng cách có nhiều chỉ số tương tự nhưng không chồng lặp các cột. Ở ví dụ trước, ta cũng có thể viết theo cách sau: \\ \par{}
+    \quad\textup{In [53]: left2.join(right2, how='outer')}\par
+    \quad\textup{Out[53]:}\par
+    \quad \quad  Ohio \quad Nevada \quad\quad\quad\quad \quad\quad Missouri \quad Alabama  \par
+     \quad a \quad \quad 1 \quad\quad \quad 2 \quad\quad\quad\quad b \quad \quad \quad\quad 7 \quad \quad \quad\quad 8 \par
+     \quad c \quad \quad 3 \quad\quad \quad 4 \quad\quad\quad\quad c \quad \quad \quad\quad 9 \quad \quad \quad\quad 10 \par
+     \quad e \quad \quad 5 \quad\quad \quad 6 \quad\quad\quad\quad d \quad \quad \quad\quad 11 \quad \quad \quad\quad 12 \\ \par
+     Trong phần nguyên nhân thuộc tính, phương pháp \textbf{join} của DataFrame thực hiện gộp DataFrame đầu tiên theo các từ khóa. Phương thức này cũng hỗ trợ gộp theo chỉ số của DataFrame đã được tham chiếu đến dựa trên các cột của DataFrame được gọi: \par
+     \quad\textup{In [54]: left1.join(right1, on='key')}\par
+     \quad\textup{Out[54]:}\par
+     \quad \quad key \quad value \quad  groupVal \par
+     \quad 0 \quad a \quad \quad \quad 0  \quad\quad\quad 3.5 \par
+     \quad 2 \quad a \quad \quad \quad 2 \quad\quad\quad 3.5 \par
+     \quad 3 \quad a \quad \quad \quad 3  \quad\quad\quad 3.5 \par
+     \quad 1 \quad b \quad \quad \quad 1 \quad\quad\quad 7.0 \par
+     \quad 4 \quad b \quad \quad \quad 4 \quad\quad\quad 7.0 \par
+     \quad 5 \quad c \quad \quad \quad 5 \quad\quad\quad NaN \\\par
+    Cuối cùng, để gộp chỉ số theo chỉ số ta cần truyền vào một list các DataFrame để gộp theo cách tương tự dùng phương thức gộp chung được mô tả dưới đây: \par
+    \quad\textup{In [55]: another = DataFrame([[7., 8.], [9., 10.], [11., 12.], [16., 17.]],
+}\par
+    \quad\textup{\quad\quad....: \quad\quad\quad\quad\quad index=['a', 'c', 'e', 'f'], columns=['New York', 'Oregon']),
+}\\\par
+    \quad\textup{In [56]: left2.join([right2, another])}\par
+    \quad\textup{Out[56]:
+}\par
+    \quad\textup{Out[56]:}\par
+    \quad \quad  Ohio \quad Nevada\quad Missouri \quad Alabama \quad New York \quad Oregon  \par
+     \quad a \quad \quad 1 \quad\quad \quad 2 \quad\quad\quad NaN \quad \quad \quad NaN \quad \quad \quad\quad 7 \quad\quad\quad8  \par
+     \quad c \quad \quad 3 \quad\quad \quad 4 \quad\quad\quad\quad 9 \quad \quad \quad \quad 10 \quad \quad \quad\quad 9 \quad\quad\quad 10  \par
+      \quad e \quad \quad 5 \quad\quad \quad 6 \quad\quad\quad\quad 13 \quad \quad \quad  14 \quad \quad \quad\quad 11 \quad\quad\quad 12  \par
+%Xong phần 1
+
+%Người 2 bắt đầu làm ở đây
+%Concatenating Along on Axis, trang 185
+\section{Nối các tập dữ liệu theo cột}
+    Một cách khác để kết hợp dữ liệu là ghép nối, liên kết hoặc xếp chồng. NumPy có chức năng nối để thực hiện việc này với các mảng NumPy thô: \par
+    \quad\textup In [58]: arr = np.arange(12).reshape((3, 4))\par
+    \quad\textup In [59]: arr \par
+    \quad\textup Out[59]: \par
+    \quad\textup array([[0, 1, 2, 3],\par
+    \quad\quad\quad\quad\textup[4, 5, 6, 7],\par
+    \quad\quad\quad\quad\textup[8, 9, 10, 11]])\par
+    \quad\textup In [60]: np.concatenate([arr, arr], axis=1)\par
+    \quad\textup Out[60]:\par
+    \quad\textup array([[ 0, 1, 2, 3, 0, 1, 2, 3],\par
+    \quad\quad\quad\quad\textup[4, 5, 6, 7, 4, 5, 6, 7],\par
+    \quad\quad\quad\quad\textup[8, 9, 10, 11, 8, 9, 10, 11]])\par
+    Trong ngữ cảnh của các đối tượng gấu trúc như Sê-ri và DataFrame, việc có các trục được gắn nhãn cho phép bạn khái quát hóa hơn nữa phép nối mảng. Đặc biệt, bạn có một số điều bổ sung để suy nghĩ về:\par
+ $\bullet$ Nếu các đối tượng được lập chỉ mục khác nhau trên các trục khác, thì bộ sưu tập của các trục được hợp nhất hoặc giao nhau? \par
+  $\bullet$ Các nhóm có cần được xác định trong đối tượng kết quả không \par
+  $\bullet$  Trục nối có quan trọng không? \par
+    Hàm concat trong pandas cung cấp một cách nhất quán để giải quyết từng mối quan tâm này. Tôi sẽ đưa ra một số ví dụ để minh họa cách nó hoạt động. Giả sử chúng ta có ba Sê-ri không có chỉ số trùng nhau: 
+    \par\quad\textup In [61]: s1 = Series([0, 1], index=['a', 'b'])
+    \par\quad\textup In [62]: s2 = Series([2, 3, 4], index=['c', 'd', 'e'])
+    \par\quad\textup In [63]: s3 = Series([5, 6], index=['f', 'g'])
+    \par Gọi concat với các đối tượng này trong danh sách sẽ dán các giá trị và chỉ mục lại với nhau: 
+    \par\quad\textup In [64]: pd.concat([s1, s2, s3])
+    \par\quad\textup Out[64]: 
+    \par\quad\textup a 0
+    \par\quad\textup b 1
+    \par\quad\textup c 2
+    \par\quad\textup d 3
+    \par\quad\textup e 4
+    \par\quad\textup f 5
+    \par\quad\textup g 6
+    \par Theo mặc định, concat hoạt động dọc theo trục = 0, tạo ra một series khác. Nếu bạn vượt qua axis=1, thay vào đó, kết quả sẽ là một DataFrame (trục = 1 là các cột):
+    \par\quad\textup  In [65]: pd.concat([s1, s2, s3], axis=1)
+    \par\quad\textup Out[65]:
+\par\quad\textup\quad\quad 0\quad\quad\quad\quad 1\quad\quad\quad\quad 2
+\par\quad\textup a\quad\quad0\quad\quad NaN\quad\quad NaN
+\par\quad\textup b\quad\quad1\quad\quad NaN\quad\quad NaN
+\par\quad\textup c\quad NaN \quad\quad\quad2\quad\quad NaN
+\par\quad\textup d\quad NaN \quad\quad\quad3\quad\quad NaN
+\par\quad\textup e\quad NaN \quad\quad\quad4\quad\quad NaN
+\par\quad\textup f\quad NaN\quad\quad NaN\quad\quad\quad 5
+\par\quad\textup g\quad NaN\quad\quad NaN\quad\quad\quad 6
+    \par Trong trường hợp này, không có sự trùng lặp trên trục khác, như bạn có thể thấy là trục đã được sắp xếp union (nối 'bên ngoài' ) của các chỉ mục. Thay vào đó, bạn có thể cắt chúng bằng cách đi qua tham gia = 'bên trong':
+    \par\quad\textup In [66]: s4 = pd.concat([s1 * 5, s3]) 
+    \par\quad\textup In [67]: pd.concat([s1, s4], axis=1) \quad\quad\quad In [68]: pd.concat([s1, s4], axis=1, join='inner') 
+    \par\quad\textup Out[67]: \quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad \xspace Out[68]:
+    \par\quad\quad\xspace\xspace 0\xspace 1 \quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\xspace 0\xspace 1
+    \par\quad\textup a\quad 0 0\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad a 0 0
+\par\quad\textup b\quad 1 5\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad b 1 5
+\par\quad\textup f NaN 5
+\par\quad\textup g NaN 6
+\par Bạn thậm chí có thể chỉ định các trục sẽ được sử dụng trên các trục khác với$ join_axe$s:
+\par\quad\textup In [69]: $pd.concat([s1, s4], axis=1, join_axes=[['a', 'c', 'b', 'e']])$
+\par\quad\textup Out[69]:
+ \par\quad\quad\xspace\xspace 0\quad\xspace\xspace 1
+\par\quad\textup a\quad 0\quad\xspace\xspace 0
+\par\quad\textup c NaN NaN
+\par\quad\textup b\quad 1\quad\xspace\xspace 5
+\par\quad\textup e NaN NaN
+    \par Một vấn đề là các phần được nối không thể xác định được trong kết quả. Giả sử thay vào đó, bạn muốn tạo một chỉ mục phân cấp trên trục nối. Để làm điều này,sử dụng đối số keys :
+\par\quad\textup In [70]: result = pd.concat([s1, s1, s3], keys=['one', 'two', 'three'])
+\par\quad\textup In [71]: result
+\par\quad\textup Out[71]:
+\par\quad\textup one\quad a\quad 0
+\par\quad\textup\quad\quad\xspace b\quad 1
+\par\quad\textup two\quad a\quad 0
+\par\quad\textup\quad\quad\xspace b\quad 1
+\par\quad\textup three f\quad 5
+\par\quad\textup\quad\quad  g\quad 6
+\par\quad\textup In [72]: $result.unstack()$
+\par\par\par
+\par\quad\textup Out[72]:
+
+
+\par\quad\textup \quad\quad\quad\quad\quad\quad a \quad\quad\quad \quad b\quad\quad\quad  \quad\quad f\quad\quad\quad\quad\quad g
+\par\quad\textup one \quad\quad\quad\quad 0\quad\quad\quad\quad  1\quad\quad\quad\quad  NaN\quad\quad\quad\quad  NaN
+\par\quad\textup two \quad\quad\quad\quad 0 \quad\quad\quad\quad 1\quad\quad\quad\quad  NaN\quad\quad  NaN
+\par\quad\textup  three \quad\quad\quad NaN \quad\quad NaN\quad\quad\quad\quad  5\quad\quad\quad\quad  6
+\par Trong trường hợp kết hợp series dọc theo trục=1, các khóa trở thành tiêu đề cột DataFrame:
+\par\quad\textup In [73]: pd.concat([s1, s2, s3], axis=1, keys=['one', 'two', 'three'])
+\par\quad\textup Out[73]:
+\par\quad\textup\quad   one\xspace two\xspace three
+\par\quad\textup a\quad 0\quad NaN\xspace\xspace\xspace NaN
+\par\quad\textup b\quad 1\quad NaN\xspace\xspace\xspace NaN
+\par\quad\textup c NaN\quad\quad 2\xspace\xspace\xspace NaN
+\par\quad\textup d NaN\quad\quad 3\xspace\xspace\xspace NaN
+\par\quad\textup e NaN\quad\quad 4\xspace\xspace\xspace NaN
+\par\quad\textup f NaN\quad NaN\quad\quad 5
+\par\quad\textup g NaN\quad NaN\quad\quad 6
+\par\quad\textup Logic tương tự mở rộng cho các đối tượng DataFrame:
+\par\quad\textup In [74]: df1 = DataFrame(np.arange(6).reshape(3, 2), index=['a', 'b', 'c'],
+\par\quad\textup  ....:\quad\quad\quad\quad  columns=['one', 'two'])
+\par\quad\textup In [75]: df2 = DataFrame(5 + np.arange(4).reshape(2, 2), index=['a', 'c'],
+\par\quad\textup ....: \quad\quad\quad\quad columns=['three', 'four'])
+\par\quad\textup In [76]: pd.concat([df1, df2], axis=1, keys=['level1', 'level2'])
+\par\quad\textup Out[76]:
+\par\quad\textup\quad \quad\quad  level1 \quad\quad level2
+\par\quad\textup \quad\quad\quad\quad  one \quad\quad\quad two\quad\quad\quad  three\quad\quad\quad four
+\par\quad\textup a \quad\quad\quad\quad 0\quad\quad\quad\quad  1\quad\quad\quad\quad  5\quad\quad\quad\quad  6
+\par\quad\textup b \quad\quad\quad\quad 2 \quad\quad\quad\quad 3\quad\quad\quad\quad  NaN\quad\quad  NaN
+\par\quad\textup  c \quad\quad\quad\quad 4 \quad\quad\quad\quad 5\quad\quad\quad\quad  7\quad\quad\quad\quad  8
+\par\quad\textup Nếu bạn chuyển một lệnh của các đối tượng thay vì một danh sách, các phím của lệnh đó sẽ được sử dụng cho tùy
+chọn phím :
+\par\quad\textup In [77]: pd.concat({'level1': df1, 'level2': df2}, axis=1)
+\par\quad\textup Out[77]:
+\par\quad\textup\quad\quad level1 level2
+\par\quad\textup\quad\quad one\quad two\quad three \quad four
+\par\quad\textup a\quad\quad 0\quad\quad 1\quad 5  \quad\quad\quad 6
+\par\quad\textup b\quad\quad 2\quad\quad 3\quad NaN\quad\quad NaN
+\par\quad\textup c\quad\quad 4\quad\quad 5\quad 7  \quad \quad\quad 8
+\par\quad\textup Có một số đối số bổ sung chi phối cách tạo chỉ mục phân cấp (xem Bảng 7-2):
+\par\quad\textup In [78]: pd.concat([df1, df2], axis=1, keys=['level1', 'level2'],
+\par\quad\textup ....: \quad\quad names=['upper', 'lower'])
+\par\quad\textup Out[78]:
+\par\quad\textup upper level1 level2
+\par\quad\textup lower one\quad two\quad three \quad four
+\par\quad\textup a\quad\quad 0\quad\quad 1\quad 5  \quad\quad\quad 6
+\par\quad\textup b\quad\quad 2\quad\quad 3\quad NaN\quad\quad NaN
+\par\quad\textup c\quad\quad 4\quad\quad 5\quad 7  \quad \quad\quad 8
+\par Cân nhắc cuối cùng liên quan đến DataFrames trong đó chỉ mục hàng không có ý nghĩa trong ngữ cảnh phân tích:
+\par\quad\textup In [79]: df1 = DataFrame(np.random.randn(3, 4), columns=['a', 'b', 'c', 'd'])
+\par\quad\textup In [80]: df2 = DataFrame(np.random.randn(2, 3), columns=['b', 'd', 'a'])
+\par\quad\textup In [81]:\quad\quad\quad\quad df1 In [82]: df2
+\par\quad\textup Out[81]:\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad Out[82]:
+\par\quad\textup \quad\quad\quad\quad a\quad\quad b\quad\quad\quad\quad c\quad\quad\quad\quad d \quad\quad\quad\quad\quad\quad b\quad\quad\quad\quad d\quad\quad\quad\quad a
+\par\quad\textup 0 -0.204708 0.478943 -0.519439 -0.555730\quad\quad 0 0.274992 0.228913 1.352917
+\par\quad\textup 1 1.965781 1.393406 0.092908  0.281746\quad\quad\quad 1 0.886429 -2.001637 -0.371843
+\par\quad\textup 2 0.769023 1.246435 1.007189 -1.296221
+\par\quad\textup Trong trường hợp này, bạn có thể bỏ qua $ignore_index=True$:
+\par\quad\textup In [83]: $pd.concat([df1, df2], ignore_index=True)$
+\par\quad\textup Out[83]:
+\par\quad\quad\quad\quad\quad a \quad\quad\quad b\quad\quad\quad  c\quad\quad\quad  d
+\par\quad 0 -0.204708 0.478943 -0.519439 -0.555730
+\par\quad 1 1.965781 1.393406 0.092908 0.281746
+\par\quad 2 0.769023 1.246435 1.007189 -1.296221
+\par\quad 3 1.352917 0.274992\quad NaN\quad\quad 0.228913
+\par\quad 4 -0.371843 0.886429\quad NaN\quad\quad -2.001637 \\ \par
+\quad\textup{Bảng 7-2: tham số của hàm concat}
+\begin{table}[h]
+\centering
+    \begin{tabular}{l|p{10cm}}
+      \textbf{ Tham số}  & \textbf{Mô tả} \\
+objs & Danh sách các dictionary của các đối tượng pandas để concat \\ 
+axis & Cột để bắt đầu concat, mặc định là cột 0 \\
+join  & Cách concat: inner hoặc outer, mặc định là outer  \\
+join\_axes     &  Chỉ số cụ thể để dùng cho các cột n-1 khác ngoại trừ các hàm lấy phần chung.\\
+keys   & Các giá trị để tham gia vào đối tượng được concat \\
+levels & Các chỉ số cụ thể để sắp xếp theo thứ bậc   \\
+names   &  Tên cho các bậc chỉ số nếu key được truyền vào \\
+verify\_integrity  & Kiểm tra nếu cột trong đối tượng được concat có bị lặp \\
+ignore\_index  & Không đảo ngược chỉ số theo các cột được concat, mà trả về range(total\_lenght)
+\end{tabular}
+    \caption{Các tham số của hàm \textbf{concat}}
+    \label{tab:table2}
+\end{table}
+%Combining Data with Overlap, trang 188
+\section{Kết hợp dữ liệu chéo}
+\par\textup Tình huống kết hợp dữ liệu khác không thể được biểu thị dưới dạng thao tác hợp nhất hoặc nối quốc gia. Bạn có thể có hai tập dữ liệu có chỉ mục trùng nhau toàn bộ hoặc một phần. Như một ví dụ thúc đẩy, hãy xem xét hàm where của NumPy, biểu thị một if-else được vector hóa:
+\par\quad\textup In [84]: a = Series([np.nan, 2.5, np.nan, 3.5, 4.5, np.nan],
+\par\quad\quad\quad  ....:\quad\quad index=['f', 'e', 'd', 'c', 'b', 'a'])
+\par\quad\textup In [85]: b = Series(np.arange(len(a), dtype=np.float64),
+\par\quad\quad\quad ....:\quad\quad index=['f', 'e', 'd', 'c', 'b', 'a'])
+\par\quad\textup In [86]: b[-1] = np.nan
+\par\quad\textup In [87]: a\quad\quad\quad In [88]: b\quad\quad In [89]: np.where(pd.isnull(a), b, a)
+\par\quad\textup Out[87]:\xspace\quad\quad\quad Out[88]:\quad\quad\quad Out[89]:
+\par\quad\textup f NaN\xspace\xspace\xspace\quad\quad\quad\quad f 0\quad\quad\quad\quad\quad\xspace\quad f 0.0
+\par\quad\textup e 2.5\quad\quad\quad\quad\quad e 1\quad\quad\quad\quad\quad\quad e 2.5
+\par\quad\textup d NaN\xspace\xspace\quad\quad\quad\quad d 2\quad\quad\quad\quad\quad\quad d 2.0
+\par\quad\textup c 3.5\quad\quad\quad\quad\quad c 3\quad\quad\quad\quad\quad\quad c 3.5
+\par\quad\textup b 4.5\quad\quad\quad\quad\quad b 4\quad\quad\quad\quad\quad\quad b 4.5
+\par\quad\textup a NaN\quad\quad\quad\quad a NaN\quad\quad\quad\quad\quad a NaN
+\par\quad\textup Series có phương thức kết hợp đầu tiên , thực hiện tương đương với thao tác này cộng với căn chỉnh dữ liệu:
+\par\quad\textup In [90]: $b[:-2].combine_first(a[2:])$
+\par\quad\textup Out[90]:
+\par\quad\textup a\quad NaN
+\par\quad\textup b\quad 4.5
+\par\quad\textup c\quad 3.0
+\par\quad\textup d\quad 2.0
+\par\quad\textup e\quad 1.0
+\par\quad\textup f\quad 0.0
+\par\quad\textup Với DataFrames, tổ hợp first tự nhiên thực hiện cùng một việc theo từng cột, vì vậy bạn
+có thể coi đó là "vá" dữ liệu bị thiếu trong đối tượng gọi bằng dữ liệu từ đối tượng bạn
+chuyển:
+\par\quad\textup In [91]: df1 = DataFrame({'a': [1., np.nan, 5., np.nan],
+\par\quad\textup\quad ....:\quad\quad\quad\quad\quad\quad\quad\quad 'b': [np.nan, 2., np.nan, 6.],
+\par\quad\textup\quad  ....:\quad\quad\quad\quad\quad\quad\quad\quad 'c': range(2, 18, 4)})
+\par\quad\textup In [92]: df2 = DataFrame({'a': [5., 4., np.nan, 3., 7.],
+\par\quad\textup\quad  ....:\quad\quad\quad\quad\quad\quad\quad\quad 'b': [np.nan, 3., 4., 6., 8.]})
+\par\quad\textup In [93]: df1.combine\textunderscore first(df2)
+\par\quad\textup Out[93]:
+\par\quad\textup\quad\quad a\quad b\quad c
+\par\quad\textup 0\quad 1 NaN\quad 2
+\par\quad\textup 1\quad 4\quad 2\quad 6
+\par\quad\textup 2\quad 5\quad 4\quad 10
+\par\quad\textup 3\quad 3\quad 6\quad 14
+\par\quad\textup 4\quad 7\quad 8\quad NaN
+
+

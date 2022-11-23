@@ -1,0 +1,408 @@
+%Data Transformation
+%2 người làm
+%Người 3: từ đầu Data Transfomartion đến hết Permutation
+%Người 4: từ Renaming Axis Indexes đến hết String Object Methods ở Chapter4
+\chapter{Chuyển đổi dữ liệu}
+\begin{introchap3}
+    Cho đến giờ trong chương này, chúng ta đã quan tâm đến việc sắp xếp lại dữ liệu. Lọc, làm sạch, và các phép biến đổi khác là một loại hoạt động quan trọng khác.
+\end{introchap3}
+%Removing Duplicates
+\section{Loại bỏ trùng lặp}
+Các hàng trùng lặp có thể được tìm thấy trong DataFrame vì bất kỳ lý do nào. Đây là một thí dụ:\par
+    \quad\textup{In [126]: data = DataFrame({'k1': ['one'] * 3 + ['two'] * 4, }}\par
+    \quad\textup{ .....: \quad\quad\quad\quad\quad\quad\quad\quad\quad\quad                    'k2': [1, 1, 2, 3, 3, 4, 4])}\par
+    \quad\textup{In [127]: data  }\par
+    \quad\textup{Out[127]: }\par
+    \quad\quad\textup{k1\quad k2}\par
+    \quad\textup{0 one \quad  1 }\par
+    \quad\textup{1 one \quad  1 }\par
+    \quad\textup{2 one \quad  2 }\par
+    \quad\textup{3 two \quad  3 }\par
+    \quad\textup{4 two \quad  3 }\par
+    \quad\textup{5 two \quad  4 }\par
+    \quad\textup{6 two \quad  4 }\par
+    \par
+    Phương thức DataFrame được sao chép trả về một Sê-ri boolean cho biết liệu mỗi 
+    hàng có trùng lặp hay không:\par
+    \par
+    \quad\textup{In [128]: data.duplicated() }\par
+    \quad\textup{Out[128]: }\par
+    \quad\textup{0\quad False}\par
+    \quad\textup{1\quad True}\par
+    \quad\textup{2\quad False}\par
+    \quad\textup{3\quad False}\par
+    \quad\textup{4\quad True}\par
+    \quad\textup{5\quad False}\par
+    \quad\textup{6\quad True}\par
+Liên quan, drop\_duplicates trả về một DataFrame trong đó mảng trùng lặp là True:\par\par
+    \quad\textup{      In [129]: {data.drop\_duplicates()} }\par
+    \quad\textup{         Out[129]: }\par
+    \quad\quad\textup{k1\quad k2}\par
+    \quad\textup{0 one \quad  1 }\par
+    \quad\textup{2 one \quad  2 }\par
+    \quad\textup{3 one \quad  3 }\par
+    \quad\textup{5 two \quad  4}\par
+    \par
+Theo mặc định, cả hai phương pháp này đều xem xét tất cả các cột; cách khác bạn có thể 
+chỉ định bất kỳ tập hợp con nào của chúng để phát hiện các bản sao. Giả sử chúng ta có thêm một cột của các giá trị và chỉ muốn lọc các giá trị trùng lặp dựa trên cột 'k1': \par
+\par
+    \quad\textup{In [130]: data['v1'] = range(7) }\par
+    \quad\textup{In [131]: data.drop\_duplicates(['k1'])}\par
+    \quad\textup{Out[131]:}\par
+    \quad\quad\textup{k1  k2  v1 }\par
+    \quad\textup{0  one   1   0 }\par
+    \quad\textup{3  two   3   3 }\par\par
+Duplicate và drop-uplicates theo mặc định giữ kết hợp giá trị được quan sát đầu tiên. Vượt qua take\_last=True sẽ trả về cái cuối cùng:\par\par
+    \quad\textup{ In [132]: data.drop\_duplicates(['k1', 'k2'], take\_last=True) }\par
+    \quad\textup{Out[132]: }\par
+    \quad\quad\textup{k1  k2  v1 }\par
+    \quad\textup{1  one   1   1 }\par
+    \quad\textup{2  one   2   2 }\par
+    \quad\textup{4  two   3   4 }\par
+    \quad\textup{6  two   4   6 }\par
+    
+    
+%Transforming Data Using a Function or Mapping
+\section{Biến đổi dữ liệu sử dụng chức năng ánh xạ}
+Đối với nhiều tập dữ liệu, bạn có thể muốn thực hiện một số chuyển đổi dựa trên các giá trị trong một mảng, Sê-ri hoặc cột trong DataFrame. Hãy xem xét các dữ liệu giả định sau đây sưu tầm về một số loại thịt:\par\par
+    \quad\textup{In [133]: data = DataFrame({'food': ['bacon', 'pulled pork', 'bacon', 'Pastrami', }}\par
+    \quad\textup{    .....: \quad\quad\quad\quad\quad\quad\quad\quad\quad\quad corned beef', 'Bacon', 'pastrami', 'honey ham',  }\par
+    \quad\textup{   .....:\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad                            'nova lox'],  }\par
+    \quad\textup{      .....: \quad\quad\quad\quad\quad\quad\quad\quad\quad\quad                  'ounces': [4, 3, 12, 6, 7.5, 8, 3, 5, 6]) }\par
+    \quad\textup{In [134]: data }\par
+    \quad\textup{Out[134]: }\par
+    \quad\quad\quad\textup{food  \quad\quad ounces }\par
+    \quad\textup{0 \quad bacon\quad\quad\quad\     4.0 }\par
+    \quad\textup{1  \quad pulled pork \quad3.0 }\par
+    \quad\textup{2  \quad  bacon \quad \quad\quad 12.0  }\par
+    \quad\textup{3  \quad  Pastrami\quad\quad 6.0  }\par
+    \quad\textup{4   \quad corned beef\quad8.0 }\par
+    \quad\textup{5  \quad  Bacon \quad\quad\quad 7.5  }\par
+    \quad\textup{6  \quad  pastrami  \quad\quad   3.0  }\par
+    \quad\textup{7  \quad  honey ham     \quad    5.0  }\par
+    \quad\textup{8  \quad  nova lox\quad\quad\ 6.0  }\par
+Giả sử bạn muốn thêm một cột cho biết loại động vật mà mỗi loại thực phẩm đến từ. Hãy viết ra một ánh xạ của từng loại thịt riêng biệt cho loại động vật: \par\par
+    \quad\textup{ \textup{meat\_to\_animal} = \{ }\par
+    \quad\quad\textup{'bacon': 'pig',  }\par
+    \quad\quad\textup{'pulled pork': 'pig',  }\par
+    \quad\quad\textup{'pastrami': 'cow',  }\par
+    \quad\quad\textup{'corned beef': 'cow', }\par 
+    \quad\quad\textup{'honey ham': 'pig', }\par 
+    \quad\quad\textup{'nova lox': 'salmon'  }\par  
+Phương thức map trên Sê-ri chấp nhận một hàm hoặc đối tượng giống như dict chứa ánh xạ, 
+nhưng ở đây chúng ta có một vấn đề nhỏ là một số loại thịt ở trên được viết hoa và 
+những người khác thì không. Vì vậy, chúng ta cũng cần chuyển đổi từng giá trị thành chữ thường:\par
+    \quad\textup{ In [136]: data['animal'] = data['food'].map(str.lower).map(meat\_to\_animal)  }\par
+    \quad\textup{In [137]: data }\par
+    \quad\textup{Out[137]:  }\par
+    \quad\textup{\quad\quad food \quad\quad ounces\quad animal  }\par
+    \quad\textup{0        bacon  \quad   \quad\quad4.0 \quad\quad\quad    pig  }\par
+    \quad\textup{1  pulled pork  \quad   3.0  \quad\quad\quad   pig  }\par
+    \quad\textup{2        bacon    \quad\quad\quad12.0    \quad\quad\quad pig  }\par
+    \quad\textup{3     Pastrami    \quad \quad6.0\quad\quad\quad     cow  }\par
+    \quad\textup{4  corned beef    \quad 7.5 \quad\quad\quad    cow  }\par
+    \quad\textup{5        Bacon    \quad \quad\quad8.0 \quad\quad\quad    pig }\par
+    \quad\textup{6     pastrami    \quad\quad3.0 \quad\quad\quad    cow  }\par
+    \quad\textup{7    honey ham    \quad 5.0  \quad\quad\quad   pig  }\par
+    \quad\textup{8     nova lox     \quad\quad 6.0\quad\quad\quad salmon }\par
+Chúng ta cũng có thể truyền vào một hàm thực hiện tất cả công việc: \par
+    \quad\textup{In [138]: data['food'].map(lambda x: meat\_to\_animal[x.lower()]) }\par
+    \quad\textup{Out[138]: }\par
+    \quad\textup{0 \quad\quad      pig }\par 
+    \quad\textup{1 \quad\quad      pig }\par
+    \quad\textup{1 \quad\quad      pig }\par
+    \quad\textup{2 \quad \quad     pig }\par  
+    \quad\textup{3 \quad \quad    cow }\par 
+    \quad\textup{4 \quad \quad   cow }\par 
+    \quad\textup{5  \quad \quad    pig }\par 
+    \quad\textup{6  \quad  \quad   cow }\par 
+    \quad\textup{7  \quad  \quad   pig }\par 
+    \quad\textup{8  \quad  \quad   salmon}\par  
+    \quad\textup{Name: food }\par
+Sử dụng bản đồ là một cách thuận tiện để thực hiện các phép biến đổi phần tử và dữ liệu khác 
+các hoạt động liên quan đến vệ sinh.\par    
+
+%Replacing Values
+\section{Thay thế giá trị}
+Điền vào dữ liệu còn thiếu bằng phương thức fillna có thể được coi là một trường hợp đặc biệt của 
+thay thế giá trị tổng quát hơn. Trong khi bản đồ, như bạn đã thấy ở trên, có thể được sử dụng để sửa đổi 
+một tập hợp con các giá trị trong một đối tượng, thay thế cung cấp một cách đơn giản và linh hoạt hơn để thực hiện 
+vì thế. Hãy xem xét Series này:\par
+    \quad\textup{In [139]: data = Series([1., -999., 2., -999., -1000., 3.])  }\par
+    \quad\textup{In [140]: data   }\par
+    \quad\textup{Out[140]: }\par
+    \quad\textup{0 \quad      1 }\par
+    \quad\textup{1  \quad  -999  }\par
+    \quad\textup{2 \quad      2 }\par
+    \quad\textup{3  \quad  -999 }\par
+    \quad\textup{4 \quad  -1000 }\par
+    \quad\textup{5  \quad     3}\par
+Các giá trị -999 có thể là giá trị trọng điểm cho dữ liệu bị thiếu. Để thay thế chúng bằng NaN 
+các giá trị mà gấu trúc hiểu được, chúng ta có thể sử dụng thay thế, tạo ra một Sê-ri mới: \par
+    \quad\textup{In [141]: data.replace(-999, np.nan)}\par
+    \quad\textup{Out[141]:    }\par
+    \quad\textup{0  \quad     1  }\par
+    \quad\textup{1   \quad  NaN  }\par
+    \quad\textup{2 \quad      2 }\par
+    \quad\textup{3  \quad NaN }\par
+    \quad\textup{4 \quad  -1000 }\par
+    \quad\textup{5  \quad     3}\par
+Nếu bạn muốn thay thế nhiều giá trị cùng một lúc, thay vào đó, bạn chuyển một danh sách rồi thay thế giá trị: \par
+    \quad\textup{In [142]: data.replace([-999, -1000], np.nan)}\par
+    \quad\textup{Out[142]:    }\par
+    \quad\textup{0  \quad     1  }\par
+    \quad\textup{1   \quad  NaN  }\par
+    \quad\textup{2 \quad      2 }\par
+    \quad\textup{3  \quad NaN }\par
+    \quad\textup{4 \quad  NaN }\par
+    \quad\textup{5  \quad     3}\par        
+Để sử dụng một thay thế khác cho mỗi giá trị, hãy chuyển danh sách thay thế:\par
+    \quad\textup{In [143]: data.replace([-999, -1000], [np.nan, 0])}\par
+    \quad\textup{Out[143]:    }\par
+    \quad\textup{0  \quad     1  }\par
+    \quad\textup{1   \quad  NaN  }\par
+    \quad\textup{2 \quad      2 }\par
+    \quad\textup{3  \quad NaN }\par
+    \quad\textup{4 \quad  0 }\par
+    \quad\textup{5  \quad     3}\par
+Đối số được thông qua cũng có thể là một lệnh:\par
+    \quad\textup{In [144]: data.replace({-999: np.nan, -1000: 0})}\par
+    \quad\textup{Out[144]:    }\par
+    \quad\textup{0  \quad     1  }\par
+    \quad\textup{1   \quad  NaN  }\par
+    \quad\textup{2 \quad      2 }\par
+    \quad\textup{3  \quad NaN }\par
+    \quad\textup{4 \quad  0 }\par
+    \quad\textup{5  \quad     3}\par
+%Renaming Axis Indexe
+\section{Đổi tên trục Indexes}
+Giống như các giá trị trong Sê-ri, nhãn trục có thể được chuyển đổi tương tự bằng hàm hoặc ánh xạ 
+của một số dạng để tạo ra các đối tượng mới, được dán nhãn khác nhau. Các trục cũng có thể được sửa đổi 
+tại chỗ mà không cần tạo cấu trúc dữ liệu mới. Đây là một ví dụ đơn giản:\par
+    \quad\textup{In [145]: data = DataFrame(np.arange(12).reshape((3, 4)), }\par
+    \quad\textup{ .....: \quad\quad\quad\quad\quad                 index=['Ohio', 'Colorado', 'New York'], }\par
+    \quad\textup{ .....: \quad\quad\quad\quad\quad                 columns=['one', 'two', 'three', 'four']) }\par
+Giống như một Sê-ri, các chỉ mục trục có một phương thức bản đồ: \par
+    \quad\textup{In [146]: data.index.map(str.upper)  }\par
+    \quad\textup{Out[146]: array([OHIO, COLORADO, NEW YORK], dtype=object)  }\par
+Bạn có thể gán cho chỉ mục, sửa đổi DataFrame tại chỗ:\par
+    \quad\textup{In [147]: data.index = data.index.map(str.upper) }\par
+    \quad\textup{In [148]: data}\par
+    \quad\textup{Out[148]: }\par
+    \quad\quad\quad\textup{\quad\quad\quad\quad one  two  three  four }\par
+    \quad\textup{OHIO \quad\quad\quad\quad    0 \quad   1\quad\       2 \quad    3  }\par
+    \quad\textup{COLORADO \quad   4\quad\    5 \quad\      6  \quad   7  }\par
+    \quad\textup{NEW YORK\quad\  8 \quad   9 \quad10 \    11  }\par
+Nếu bạn muốn tạo phiên bản đã chuyển đổi của tập dữ liệu mà không sửa đổi bản gốc, một phương pháp hữu ích là đổi tên:\par
+    \quad\textup{In [149]: data.rename(index=str.title, columns=str.upper) }\par
+    \quad\textup{Out[149]: }\par
+    \quad\quad\quad\textup{\quad\quad\quad\quad ONE  TWO  THREE  FOUR  }\par
+    \quad\textup{OHIO \quad\quad\quad\quad    0 \quad\quad   1\quad\quad\         2 \quad\quad\     3  }\par
+    \quad\textup{COLORADO \quad   4\quad\ \quad    5 \quad\ \quad     6  \quad \quad  7  }\par
+    \quad\textup{NEW YORK\quad\  8 \quad \quad  9 \quad\quad10 \quad\      11  }\par  
+Đáng chú ý, đổi tên có thể được sử dụng cùng với một đối tượng giống như dict cung cấp các giá trị mới 
+cho một tập hợp con của các nhãn trục: \par
+     \quad\textup{In [150]: data.rename(index= \{\ 'OHIO': 'INDIANA'\}\ , }\par
+     \quad\textup{ .....: \quad\quad\quad\quad\quad\quad            columns={'three': 'peekaboo'})   }\par
+    \quad\textup{Out[150]: }\par
+    \quad\quad\quad\textup{\quad\quad\quad\quad one\quad   two  peekaboo\quad   four   }\par
+    \quad\textup{INDIANA \quad\quad\    0 \quad\quad   1\quad\quad\         2 \quad\quad\     3  }\par
+    \quad\textup{COLORADO \quad   4\quad\ \quad    5 \quad\ \quad     6  \quad \quad  7  }\par
+    \quad\textup{NEW YORK\quad\  8 \quad \quad  9 \quad\quad10 \quad\      11  }\par  
+đổi tên tiết kiệm phải sao chép DataFrame theo cách thủ công và gán cho chỉ mục và col của nó 
+thuộc tính umns. Nếu bạn muốn sửa đổi tập dữ liệu tại chỗ, hãy chuyển inplace=True:\par
+ Luôn trả về tham chiếu đến DataFrame\par
+    \quad\textup{In [151]: \_\= data.rename(index={'OHIO': 'INDIANA'}, inplace=True)}\par
+    \quad\textup{In [152]: data  }\par
+    \quad\textup{Out[152]:  }\par
+    \quad\quad\quad\textup{\quad\quad\quad\quad one\quad  two\quad three\quad  four }\par
+    \quad\textup{INDIANA \quad\quad\    0 \quad\quad   1\quad\quad\         2 \quad\quad\     3  }\par
+    \quad\textup{COLORADO \quad   4\quad\ \quad    5 \quad\ \quad     6  \quad \quad  7  }\par
+    \quad\textup{NEW YORK\quad\  8 \quad \quad  9 \quad\quad10 \quad\      11  }\par  
+
+%Discretization and Binning 
+\section{Rời rạc hóa và Binning}
+Dữ liệu liên tục thường được rời rạc hóa hoặc được tách thành các “thùng” để phân tích. 
+Giả sử bạn có dữ liệu về một nhóm người trong một nghiên cứu và bạn muốn nhóm họ 
+thành các nhóm tuổi rời rạc:\par
+    \quad\textup{In [153]: ages = [20, 22, 25, 27, 21, 23, 37, 31, 61, 45, 41, 32]}\par
+Hãy chia chúng thành các thùng từ 18 đến 25, 26 đến 35, 35 đến 60 và cuối cùng là 60 trở lên. Đến 
+làm như vậy, bạn phải sử dụng hàm cut trong pandas:\par
+    \quad\textup{In [154]: bins = [18, 25, 35, 60, 100] }\par
+    \quad\textup{In [155]: cats = pd.cut(ages, bins) }\par
+    \quad\textup{In [156]: cats   }\par 
+    \quad\textup{Out[156]: }\par
+    \quad\textup{Categorical:   }\par
+    \quad\textup{array([(18, 25], (18, 25], (18, 25], (25, 35], (18, 25], (18, 25],  }\par
+    \quad\textup{\quad\quad (35, 60], (25, 35], (60, 100], (35, 60], (35, 60], (25, 35]], dtype=object)  }\par
+    \quad\textup{ Levels (4): Index([(18, 25], (25, 35], (35, 60], (60, 100]], dtype=object)}\par
+Đối tượng pandas trả về là một đối tượng Phân loại đặc biệt. Bạn có thể coi nó như một mảng 
+của các chuỗi cho biết tên bin; bên trong nó chứa một mảng cấp độ cho biết 
+tên danh mục riêng biệt cùng với nhãn cho dữ liệu độ tuổi trong thuộc tính nhãn:\par
+    \quad\textup{In [157]: cats.labels  }\par
+    \quad\textup{Out[157]: array([0, 0, 0, 1, 0, 0, 2, 1, 3, 2, 2, 1])  }\par
+    \quad\textup{In [158]: cats.levels  }\par
+    \quad\textup{Out[158]: Index([(18, 25], (25, 35], (35, 60], (60, 100]], dtype=object)  }\par
+    \quad\textup{In [159]: pd.value\textunderscore counts(cats)  }\par
+    \quad\textup{Out[159]:  }\par
+    \quad\textup{(18, 25] \quad    5  }\par
+    \quad\textup{(35, 60]  \quad   3  }\par
+    \quad\textup{(25, 35] \quad    3   }\par
+    \quad\textup{(60, 100]\quad    1 }\par
+Phù hợp với ký hiệu toán học cho các khoảng, dấu ngoặc đơn có nghĩa là cạnh 
+đang mở trong khi dấu ngoặc vuông có nghĩa là nó đã đóng (bao gồm). Có thể đóng cửa bên nào 
+được thay đổi bằng cách chuyển sang phải=Sai:\par
+    \quad\textup{In [160]: pd.cut(ages, [18, 26, 36, 61, 100], right=False)  }\par
+    \quad\textup{Out[160]:  }\par
+    \quad\textup{Categorical:   }\par 
+    \quad\textup{array([[18, 26), [18, 26), [18, 26), [26, 36), [18, 26), [18, 26), }\par
+    \quad\textup{\quad\quad [36, 61), [26, 36), [61, 100), [36, 61), [36, 61), [26, 36)], dtype=object)   }\par
+    \quad\textup{Levels (4): Index([[18, 26), [26, 36), [36, 61), [61, 100)], dtype=object)}\par
+Bạn cũng có thể chuyển tên thùng rác của riêng mình bằng cách chuyển danh sách hoặc mảng vào tùy chọn nhãn:\par
+    \quad\textup{In [161]: group\textunderscore names = ['Youth', 'YoungAdult', 'MiddleAged', 'Senior'] }\par
+    \quad\textup{In [162]: pd.cut(ages, bins, labels=group\textunderscore names)  }\par
+    \quad\textup{Out[162]: }\par
+    \quad\textup{Categorical:   }\par
+    \quad\textup{array([Youth, Youth, Youth, YoungAdult, Youth, Youth, MiddleAged}\par
+    \quad\textup{\quad\quad YoungAdult, Senior, MiddleAged, MiddleAged, YoungAdult], dtype=object)    }\par
+    \quad\textup{Levels (4): Index([Youth, YoungAdult, MiddleAged, Senior], dtype=object)}\par
+Nếu bạn vượt qua cắt một số lượng thùng thay vì các cạnh thùng rõ ràng, nó sẽ tính toán 
+các thùng có chiều dài bằng nhau dựa trên các giá trị tối thiểu và tối đa trong dữ liệu. Xem xét 
+trường hợp một số dữ liệu được phân phối đồng đều được chia thành phần tư:\par
+    \quad\textup{In [163]: data = np.random.rand(20) }\par
+    \quad\textup{In [164]: pd.cut(data, 4, precision=2)  }\par
+    \quad\textup{Out[164]: }\par
+    \quad\textup{Categorical:   }\par
+    \quad\textup{array([(0.45, 0.67], (0.23, 0.45], (0.0037, 0.23], (0.45, 0.67], }\par
+    \quad\textup{\quad\quad (0.67, 0.9], (0.45, 0.67], (0.67, 0.9], (0.23, 0.45], (0.23, 0.45],    }\par
+    \quad\textup{\quad\quad (0.67, 0.9], (0.67, 0.9], (0.67, 0.9], (0.23, 0.45], (0.23, 0.45], }\par
+    \quad\textup{\quad\quad  (0.23, 0.45], (0.67, 0.9], (0.0037, 0.23], (0.0037, 0.23],  }\par
+    \quad\textup{\quad\quad  (0.23, 0.45], (0.23, 0.45]], dtype=object) }\par
+    \quad\textup{Levels (4): Index([(0.0037, 0.23], (0.23, 0.45], (0.45, 0.67], }\par
+    \quad\textup{\quad\quad\quad\quad (0.67, 0.9]], dtype=object)}\par
+Một chức năng liên quan chặt chẽ, qcut, xử lý dữ liệu dựa trên các lượng tử mẫu. Tùy 
+về phân phối dữ liệu, sử dụng cắt thường sẽ không dẫn đến việc mỗi ngăn có 
+cùng số điểm dữ liệu. Vì qcut sử dụng lượng tử mẫu thay thế, nên theo định nghĩa 
+bạn sẽ thu được các thùng có kích thước gần bằng nhau:\par
+    \quad\textup{In [165]: data = np.random.randn(1000)  }\par
+    \quad\textup{In [166]: cats = pd.qcut(data, 4) }\par
+    \quad\textup{In [167]: cats  }\par
+    \quad\textup{Out[167]: }\par
+    \quad\textup{Categorical:   }\par
+    \quad\textup{array([(-0.022, 0.641], [-3.745, -0.635], (0.641, 3.26], ...,  }\par
+    \quad\textup{\quad\quad (-0.635, -0.022], (0.641, 3.26], (-0.635, -0.022]], dtype=object)     }\par
+    \quad\textup{Levels (4): Index([[-3.745, -0.635], (-0.635, -0.022], (-0.022, 0.641],  }\par
+    \quad\textup{\quad\quad\quad\quad (0.641, 3.26]], dtype=object) }\par
+
+    \quad\textup{In [168]: pd.value\textunderscore counts(cats)  }\par
+    \quad\textup{[-3.745, -0.635]\quad    250    }\par
+    \quad\textup{(0.641, 3.26]  \quad\ \       250   }\par
+    \quad\textup{(-0.635, -0.022]\quad    250   }\par
+    \quad\textup{(-0.022, 0.641] \quad    250   }\par
+ Tương tự như cắt, bạn có thể chuyển các lượng tử của riêng mình (bao gồm các số từ 0 đến 1): \par
+    \quad\textup{In [169]: pd.qcut(data, [0, 0.1, 0.5, 0.9, 1.])}\par
+    \quad\textup{Out[169]:   }\par
+    \quad\textup{Categorical:   }\par 
+    \quad\textup{array([(-0.022, 1.302], (-1.266, -0.022], (-0.022, 1.302], ..., }\par
+    \quad\textup{\quad\quad (-1.266, -0.022], (-0.022, 1.302], (-1.266, -0.022]], dtype=object)   }\par
+    \quad\textup{Levels (4): Index([[-3.745, -1.266], (-1.266, -0.022], (-0.022, 1.302],}\par
+    \quad\textup{\quad\quad\quad\quad (1.302, 3.26]], dtype=object) }\par
+Chúng ta sẽ quay lại cut và qcut sau trong chương về phép toán tổng hợp và nhóm, 
+vì các hàm rời rạc này đặc biệt hữu ích cho phân tích nhóm và lượng tử. \par
+ 
+%Detecting and Filtering Outliers
+\section{Phát hiện và lọc các ngoại lệ}
+Lọc hoặc chuyển đổi các ngoại lệ phần lớn là vấn đề áp dụng các hoạt động mảng. Con- sider một DataFrame với một số dữ liệu được phân phối bình thường:\par
+    \quad\textup{In [170]: np.random.seed(12345)  }\par
+    \quad\textup{In [171]: data = DataFrame(np.random.randn(1000, 4)) }\par
+    \quad\textup{In [172]: data.describe()  }\par 
+    \quad\textup{Out[172]: }\par
+    \quad\textup{\quad\quad\quad\quad 0\quad\quad\quad\quad\quad            1  \quad\quad\quad\quad\quad          2 \quad\quad\quad\quad\quad           3 }\par
+    \quad\textup{count  1000.000000  1000.000000  1000.000000  1000.000000}\par
+    \quad\textup{mean     -0.067684 \quad   0.067924\quad\quad     0.025598\quad\quad    -0.002298 }\par
+    \quad\textup{std\quad       0.998035\quad\quad     0.992106\quad\quad     1.006835\quad\quad     0.996794 }\par
+    \quad\textup{min      -3.428254\quad\quad    -3.548824\quad\ \     -3.184377\quad\ \     -3.745356  }\par
+    \quad\textup{25\%      -0.774890\quad\quad    -0.591841\quad\ \    -0.641675\quad\ \     -0.644144 }\par
+    \quad\textup{50\%      -0.116401\quad\quad     0.101143\quad\quad     0.002073\quad\quad    -0.013611  }\par
+    \quad\textup{75\%       0.616366 \quad\quad    0.780282\quad\quad     0.680391\quad\quad     0.654328 }\par
+    \quad\textup{max       3.366626 \quad\quad    2.653656\quad\quad    3.260383\quad\quad     3.927528 }\par
+Giả sử bạn muốn tìm các giá trị ở một trong các cột vượt quá ba độ lớn:\par
+    \quad\textup{In [173]: col = data[3]  }\par
+    \quad\textup{In [174]: col[np.abs(col) > 3]  }\par
+    \quad\textup{Out[174]:  }\par 
+    \quad\textup{97\quad \      3.927528 }\par
+    \quad\textup{305\quad   -3.399312   }\par
+    \quad\textup{400 \quad  -3.745356  }\par
+    \quad\textup{Name:\quad 3 }\par 
+Để chọn tất cả các hàng có giá trị vượt quá 3 hoặc -3, bạn có thể sử dụng bất kỳ phương pháp nào trên một Khung dữ liệu boolean:\par
+    \quad\textup{In [175]: data[(np.abs(data) > 3).any(1)]  }\par
+    \quad\textup{Out[175]:   }\par
+    \quad\textup{\quad\quad\quad 0 \quad\quad\quad\quad        1 \quad\quad\quad\quad        2\quad\quad\quad\quad         3 }\par 
+    \quad\textup{5   -0.539741 \quad 0.476985 \quad 3.248944\quad -1.021228 }\par
+    \quad\textup{97  -0.774363\quad  0.552936\quad  0.106061\quad  3.927528   }\par
+    \quad\textup{102 -0.655054\quad -0.565230\quad  3.176873\quad  0.959533 }\par
+    \quad\textup{305 -2.315555\quad  0.457246\quad -0.025907\quad -3.399312 }\par
+    \quad\textup{324  0.050188\quad  1.951312\quad  3.260383\quad  0.963301  }\par
+    \quad\textup{400  0.146326\quad  0.508391\quad -0.196713\quad -3.745356  }\par
+    \quad\textup{499 -0.293333\quad -0.242459\quad -3.056990\quad  1.918403  }\par
+    \quad\textup{523 -3.428254\quad -0.296336\quad -0.439938\quad -0.867165  }\par
+    \quad\textup{586  0.275144\quad  1.179227\quad -3.184377\quad  1.369891  }\par
+    \quad\textup{808 -0.362528\quad -3.548824\quad  1.553205\quad -2.186301  }\par
+    \quad\textup{900  3.366626\quad -2.372214\quad  0.851010\quad  1.332846  }\par
+Các giá trị có thể dễ dàng được thiết lập dựa trên các tiêu chí này. Đây là mã giới hạn các giá trị bên ngoài 
+khoảng -3 đến 3:\par
+    \quad\textup{In [176]: data[np.abs(data) > 3] = np.sign(data) * 3  }\par
+    \quad\textup{In [177]: data.describe() }\par
+    \quad\textup{Out[177]: }\par
+    \quad\textup{\quad\quad\quad\quad\quad\quad\quad 0 \quad\quad\quad\quad\quad         1 \quad\quad\quad\quad        2\quad\quad\quad\quad\quad        3 }\par 
+    \quad\textup{count  1000.000000  1000.000000  1000.000000  1000.000000 }\par
+    \quad\textup{mean\quad      -0.067623\quad     0.068473\quad     0.025153\quad    -0.002081 }\par
+    \quad\textup{std\quad \quad       0.995485\quad     0.990253 \quad    1.003977\quad     0.989736  }\par
+    \quad\textup{min \quad      -3.000000\quad    -3.000000\quad    -3.000000\quad    -3.000000 }\par
+    \quad\textup{25\% \quad      -0.774890 \quad   -0.591841\quad    -0.641675\quad    -0.644144 }\par
+    \quad\textup{50\%\quad       -0.116401\quad     0.101143\quad     0.002073\quad\ \     -0.013611  }\par
+    \quad\textup{75\% \quad       0.616366\quad     0.780282\quad     0.680391\quad\ \      0.654328 }\par
+    \quad\textup{max \quad       3.000000\quad     2.653656\quad     3.000000\quad\ \      3.000000  }\par
+ufunc np.sign trả về một mảng 1 và -1 tùy thuộc vào dấu của các giá trị.\par
+%Permutation and Random Sampling
+\section{Hoán vị và lấy mẫu ngẫu nhiên}
+Việc hoán vị (sắp xếp lại ngẫu nhiên) một Sê-ri hoặc các hàng trong DataFrame rất dễ thực hiện bằng cách sử dụng 
+chức năng numpy.random.permutation. Gọi hoán vị với độ dài của trục 
+bạn muốn hoán vị tạo ra một mảng các số nguyên biểu thị thứ tự mới:\par
+    \quad\textup{In [178]: df = DataFrame(np.arange(5 * 4).reshape(5, 4))   }\par
+    \quad\textup{In [179]: sampler = np.random.permutation(5)  }\par
+    \quad\textup{In [180]: sampler  }\par
+    \quad\textup{Out[180]: array([1, 0, 2, 3, 4])}\par
+Sau đó, mảng đó có thể được sử dụng trong lập chỉ mục dựa trên ix hoặc hàm take:\par
+    \quad\textup{In [181]: df \quad\quad                \  In [182]: df.take(sampler)    }\par
+    \quad\textup{Out[181]: \quad\quad\quad                  Out[182]:  }\par
+    \quad\textup{\quad 0\quad   1\quad   2\quad   3 \quad\quad\quad\quad\quad 0 \quad  1\quad   2\quad   3  }\par
+    \quad\textup{0   0\quad   1\quad   2\quad   3  \quad\quad\quad 1 \quad\   4\quad   5\quad   6\quad   7 }\par
+    \quad\textup{1  4 \quad  5\quad   6 \  7  \quad\quad\quad   2  \quad\  8\quad   9\quad  10\ \  11  }\par
+    \quad\textup{3  12  13  14  15  \quad\quad\quad  3\quad\    12\ \   13\ \   14\ \   15  }\par
+    \quad\textup{4  16  17  18  19 \quad\quad\quad  4 \quad 16\ \   17\ \   18\ \   19 }\par
+Để chọn một tập hợp con ngẫu nhiên mà không cần thay thế, một cách là cắt bỏ phần tử k đầu tiên 
+ment của mảng được trả về bằng phép hoán vị, trong đó k là kích thước tập hợp con mong muốn. Ở đó 
+là các thuật toán lấy mẫu không cần thay thế hiệu quả hơn nhiều, nhưng đây là một thuật toán dễ 
+chiến lược sử dụng các công cụ sẵn có:\par
+    \quad\textup{In [183]: df.take(np.random.permutation(len(df))[:3])    }\par
+    \quad\textup{Out[183]:  }\par
+    \quad\textup{\quad 0\quad   1\quad   2 \quad  3  }\par
+    \quad\textup{1\ \    4\quad   5\quad   6\quad   7 }\par
+    \quad\textup{3  12\ \  13\ \  14\ \  15   }\par
+    \quad\textup{4  16\ \  17\ \  18\ \  19}\par
+Để tạo mẫu có thay thế, cách nhanh nhất là sử dụng np.random.randint để 
+vẽ số nguyên ngẫu nhiên:\par
+    \quad\textup{In [184]: bag = np.array([5, 7, -1, 6, 4])  }\par
+    \quad\textup{In [185]: sampler = np.random.randint(0, len(bag), size=10) }\par
+    \quad\textup{In [186]: sampler }\par
+    \quad\textup{Out[186]: array([4, 4, 2, 2, 2, 0, 3, 0, 4, 1]) }\par
+    \quad\textup{In [187]: draws = bag.take(sampler) }\par
+    \quad\textup{In [188]: draws }\par
+    \quad\textup{Out[188]: array([ 4,  4, -1, -1, -1,  5,  6,  5,  4,  7])}\par
+    
+%Người 4 bắt đầu làm ở đây
+%Computing Indicator/Dummy Variables
+
+
+%

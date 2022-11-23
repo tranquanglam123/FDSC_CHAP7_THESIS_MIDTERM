@@ -1,0 +1,219 @@
+%String Manipulation
+%Người 4 tiếp tục làm đến hết chap này
+\chapter{Các thao tác với chuỗi}
+%\usepackage{indentfirst}
+\setlength{\parindent}{0pt}
+\begin{introchap4}
+Python từ lâu đã là một ngôn ngữ trộn dữ liệu phổ biến một phần do nó dễ sử dụng để xử lý chuỗi và văn bản. Hầu hết các thao tác văn bản được thực hiện đơn giản với các phương thức tích hợp sẵn của đối tượng chuỗi. Đối với các thao tác văn bản và đối sánh mẫu phức tạp hơn, có thể cần đến các biểu thức thông thường. Pandas thêm vào hỗn hợp bằng cách cho phép bạn áp dụng chuỗi và biểu thức chính quy một cách chính xác trên toàn bộ mảng dữ liệu, ngoài ra còn xử lý sự khó chịu của dữ liệu bị thiếu
+\end{introchap4}
+
+\section{Các phương thức đối tượng của String}
+Trong nhiều ứng dụng trộn chuỗi và tạo tập lệnh, các phương thức chuỗi tích hợp sẵn là đủ. Ví dụ: một chuỗi được phân tách bằng dấu phẩy có thể được chia thành nhiều phần bằng cách chia:\par
+\hspace{1cm}In\hspace{3mm}[208]:\hspace{3mm}val = 'a,b, guido'\par
+\hspace{1cm}In\hspace{3mm}[209]:\hspace{3mm}val.split(',')\par
+\hspace{1cm}Out[209]:\hspace{3mm}['a', 'b', ' guido']\par
+spilit thường được kết hợp với strip để xóa khoảng (kể cả dòng mới):\par
+\hspace{1cm}In\hspace{3mm}[210]:\hspace{3mm} pieces = [ x.strip() for x in val.split(',') ]\par
+\hspace{1cm}In\hspace{3mm}[211]:\hspace{3mm} pieces\par
+\hspace{1cm}Out[211]:\hspace{3mm} [ 'a', 'b', 'guido' ]\par
+Các chuỗi con này có thể được nối với nhau bằng dấu phân cách hai dấu hai chấm bằng cách sử dụng điều kiện bổ sung:\par
+\hspace{1cm}In\hspace{3mm}[212]:\hspace{3mm} first, second, third = pieces \par
+\hspace{1cm}In\hspace{3mm}[213]:\hspace{3mm} first + '::' + second + '::' + third \par
+\hspace{1cm}Out[213]:\hspace{3mm} 'a::b::guido' \par 
+Tuy nhiên, đây không phải là một phương pháp chung thực tế. Một cách nhanh hơn và nhiều Pythonic hơn là chuyển một danh sách hoặc bộ dữ liệu sang phương thức nối trên chuỗi '::' : \par
+\hspace{1cm}In\hspace{3mm}[214]:\hspace{3mm} '::'.join(pieces)\par
+\hspace{1cm}Out[214]:\hspace{3mm} 'a::b::guido'\par
+Các phương pháp khác liên quan đến việc định vị các chuỗi con. Sử dụng từ khóa trong Python là cách tốt nhất để phát hiện một chuỗi con, mặc dù cũng có thể sử dụng chỉ mục và tìm kiếm \par
+\hspace{1cm}In\hspace{3mm}[215]:\hspace{3mm} 'guido' in val\par
+\hspace{1cm}Out[215]:\hspace{3mm} True\par
+\hspace{1cm}In\hspace{3mm}[216]:\hspace{3mm} val.index(',') In [217]: val.find(':')\par
+\hspace{1cm}Out[216]:\hspace{3mm} 1 Out[217]: -1 \par
+Lưu ý sự khác biệt giữa tìm và chỉ mục là chỉ mục đưa ra một ngoại lệ nếu không tìm thấy chuỗi (so với trả về -1):\par
+\hspace{1cm}In [218]:\hspace{3mm} val.index(':')\par
+\hspace{1cm}---------------------------------------------------------------------------\par
+\hspace{1cm}ValueError Traceback (most recent call last)\par
+\hspace{1cm}<ipython-input-218-280f8b2856ce> in <module>() \par
+\hspace{1cm}---> 1 val.index(':')\par
+\hspace{1cm}ValueError:\hspace{3mm} substring not found \par
+Liên quan, số lượng trả về số lần xuất hiện của một chuỗi con cụ thể:\par
+\hspace{1cm}In\hspace{3mm}[219]:\hspace{3mm} val.count(',')\par
+\hspace{1cm}Out[219]:\hspace{3mm} 2\par
+replace sẽ thay thế các lần xuất hiện của mẫu này cho mẫu khác. Điều này cũng thường được sử dụng để xóa các mẫu bằng cách chuyển một chuỗi trống:\par
+\hspace{1cm}In\hspace{3mm}[220]:\hspace{3mm} val.replace(',', '::') \hspace{2cm} In\hspace{3mm}[221]:\hspace{3mm}val.replace(',', '') \par
+\hspace{1cm}Out[220]:\hspace{3mm} 'a::b:: guido' \hspace{2,9cm} Out[221]:\hspace{3mm} 'ab guido' \par
+Biểu thức chính quy cũng có thể được sử dụng với nhiều thao tác như bạn sẽ thấy bên dưới.\par
+\textit{Bảng 7-3. Các phương thức chuỗi tích hợp trong Python}
+\begin{table}[h]
+\centering
+    \begin{tabular}{l|p{10cm}}
+      Argument   & Description \\ \hline
+         count   & Trả về số lần xuất hiện không chồng lấp của chuỗi con trong chuỗi.\\ 
+endswith, startswith & Trả về Đúng nếu chuỗi kết thúc bằng hậu tố (bắt đầu bằng tiền tố).\\ 
+join   &  Sử dụng chuỗi làm dấu phân cách để nối một chuỗi các chuỗi khác.\\ 
+index  &  Trả về vị trí của ký tự đầu tiên trong chuỗi con nếu tìm thấy trong chuỗi. Tăng ValueError nếu không tìm thấy.    \\ 
+find &  Trả về vị trí của ký tự đầu tiên xuất hiện đầu tiên của chuỗi con trong chuỗi. Giống như index, nhưng trả về -1 nếu không tìm thấy.     \\ 
+rfind &     Trả về vị trí của ký tự đầu tiên xuất hiện cuối cùng của chuỗi con trong chuỗi. Trả về -1 nếu không tìm thấy.  \\ 
+replace &    Thay thế các lần xuất hiện của chuỗi bằng một chuỗi khác.   \\ 
+strip, rstrip, lstrip &    Cắt khoảng trắng, bao gồm cả dòng mới; tương đương với x.strip() (and rstrip, lstrip, respectively) cho mỗi phần tử.  \\ 
+split & Ngắt chuỗi thành danh sách các chuỗi con bằng cách sử dụng dấu phân cách đã truyền.      \\ 
+lower, upper &      Chuyển đổi các ký tự bảng chữ cái thành chữ thường hoặc chữ hoa tương ứng. \\ 
+ljust, rjust &  Căn trái hoặc căn phải tương ứng. Đệm phía đối diện của chuỗi bằng dấu cách (hoặc một số ký tự điền khác) để trả về chuỗi có chiều rộng tối thiểu.     
+\end{tabular}
+    \caption{Các tham số của hàm \textbf{merge}}
+    \label{tab:table4}
+\end{table}
+%Người 4 bắt đầu làm ở đây
+%Regular Expressions
+\section{Biểu thức chính quy}
+Biểu thức chính quy cung cấp một cách linh hoạt để tìm kiếm hoặc so khớp các mẫu chuỗi trong văn bản. Một biểu thức đơn, thường được gọi là biểu thức chính quy, là một chuỗi được tạo theo ngôn ngữ biểu thức chính quy. Mô-đun re tích hợp sẵn của Python chịu trách nhiệm áp dụng các biểu thức chính quy cho các chuỗi; Tôi sẽ đưa ra một số ví dụ về việc sử dụng nó ở đây.\par
+Các chức năng của mô-đun lại được chia thành ba loại: so khớp mẫu, thay thế và tách. Đương nhiên, tất cả những điều này đều có liên quan với nhau; một biểu thức chính quy mô tả một mẫu để xác định vị trí trong văn bản, sau đó có thể được sử dụng cho nhiều mục đích. Hãy xem một ví dụ đơn giản: giả sử tôi muốn tách một chuỗi có số ký tự khoảng trắng thay đổi (tab, dấu cách và dòng mới). Biểu thức chính quy mô tả một hoặc nhiều ký tự khoảng trắng là $\setminus s+:$\par
+\hspace{1cm}In\hspace{3mm}[223]:\hspace{3mm} text = "$foo bar\setminus t baz \setminus tqux$" \par
+\hspace{1cm}In\hspace{3mm}[224]:\hspace{3mm} re.split($'\setminus s+', text$)\par
+\hspace{1cm}Out[224]:\hspace{3mm} ['foo', 'bar', 'baz', 'qux'] \par
+
+Khi bạn gọi re.split($'\setminus s+', text$) trước tiên, biểu thức chính quy được biên dịch, sau đó phương thức tách của nó được gọi trên văn bản đã truyền. Bạn có thể tự biên dịch biểu thức chính quy với re.compile, tạo thành một đối tượng biểu thức chính quy có thể tái sử dụng:\par
+
+\hspace{1cm}In\hspace{3mm}[225]:\hspace{3mm} regex = re.compile('$\setminus s+$') \par
+\hspace{1cm}In\hspace{3mm}[226]:\hspace{3mm} regex.split(text) \par
+\hspace{1cm}Out[226]:\hspace{3mm} ['foo', 'bar', 'baz', 'qux'] \par
+Thay vào đó, nếu bạn muốn lấy danh sách tất cả các mẫu khớp với biểu thức chính quy, bạn có thể sử dụng phương thức findall:\par
+\hspace{1cm}In\hspace{3mm}[227]:\hspace{3mm} regex.findall(text)\par
+\hspace{1cm}Out[227]:\hspace{3mm} [' ', '$\setminus$ t ', ' $\setminus$ t'] \par
+Tạo một đối tượng regex với re.compile rất được khuyến khích nếu bạn có ý định áp dụng cùng một biểu thức cho nhiều chuỗi; làm như vậy sẽ tiết kiệm chu kỳ CPU.match và tìm kiếm có liên quan chặt chẽ với findall. Trong khi findall trả về tất cả các kết quả khớp trong một chuỗi, tìm kiếm chỉ trả về kết quả khớp đầu tiên. Khéo léo hơn, match chỉ khớp ở đầu chuỗi. Như một ví dụ ít tầm thường hơn, hãy xem xét một khối văn bản và một biểu thức chính quy có khả năng xác định hầu hết các địa chỉ email:\par
+\hspace{1cm}text = """$Dave dave@google.com$ \par
+\hspace{1cm}$Steve steve@gmail.com$ \par
+\hspace{1cm}$Rob rob@gmail.com$ \par
+\hspace{1cm}$Ryan ryan@yahoo.com$ \par
+\hspace{1cm}""" \par
+\hspace{1cm}$pattern = r'[A-Z0-9._\%+-]+@[A-Z0-9.-]+\setminus .[A-Z]{2,4}'$\par
+\hspace{1cm}$\# re.IGNORECASE makes the regex case-insensitive$\par
+\hspace{1cm}$regex = re.compile(pattern, flags=re.IGNORECASE)$  \par
+Sử dụng findall trên văn bản sẽ tạo ra một danh sách các địa chỉ e-mail:\par
+\hspace{1cm}In\hspace{3mm}[229]:\hspace{3mm} $regex.findall(text)$ \par
+\hspace{1cm}Out[229]:\hspace{3mm} $['dave@google.com', 'steve@gmail.com', 'rob@gmail.com','ryan@yahoo.com']$\par
+Tìm kiếm trả về một đối tượng khớp đặc biệt cho địa chỉ email đầu tiên trong văn bản. Đối với biểu thức chính quy trên, đối tượng khớp chỉ có thể cho chúng ta biết vị trí bắt đầu và kết thúc của mẫu trong chuỗi:\par 
+\hspace{1cm}In\hspace{3mm}[230]:\hspace{3mm} m = regex.search(text)\par
+\hspace{1cm}In\hspace{3mm}[231]:\hspace{3mm} m \par
+\hspace{1cm}Out[231]:\hspace{3mm}<sre.SREMatch at 0x10a05de00>\par
+\hspace{1cm}In\hspace{3mm}[232]:\hspace{3mm} text[m.start():m.end()] \par
+\hspace{1cm}Out[232]:\hspace{3mm} $'dave@google.com'$ \par
+regex.match trả về Không, vì nó chỉ khớp nếu mẫu xuất hiện ở đầu chuỗi:\par
+\hspace{1cm}In\hspace{3mm}[233]:\hspace{3mm} print regex.match(text) \par
+\hspace{1cm}None\par
+Liên quan, sub sẽ trả về một chuỗi mới với các lần xuất hiện của mẫu được thay thế bằng chuỗi mới:\par
+\hspace{1cm}In [234]: print regex.sub('REDACTED', text)\par
+\hspace{1cm}Dave REDACTED \par
+\hspace{1cm}Steve  \par
+\hspace{1cm}Rob REDACTED \par
+\hspace{1cm}Ryan REDACTED\par
+Giả sử bạn muốn tìm địa chỉ email và đồng thời phân chia từng địa chỉ thành 3 thành phần: tên người dùng, tên miền và hậu tố miền. Để thực hiện việc này, hãy đặt dấu ngoặc đơn xung quanh các phần của mẫu để phân đoạn:\par
+\hspace{1cm}In\hspace{3mm}[235]:\hspace{3mm} $pattern = r'([A-Z0-9._\%+-]+)@([A-Z0-9.-]+)\setminus .([A-Z]{2,4})'$\par
+\hspace{1cm}In\hspace{3mm}[236]:\hspace{3mm} regex = re.compile(pattern,flags=re.IGNORECASE)\par
+Một đối tượng khớp được tạo bởi biểu thức chính quy đã sửa đổi này trả về một bộ gồm các thành phần mẫu với phương thức nhóm của nó: \par
+\hspace{1cm}In [237]: m = regex.match('wesm@bright.net')\par
+\hspace{1cm}In [238]: m.groups()\par
+\hspace{1cm}Out[238]: ('wesm', 'bright', 'net') \par
+findall trả về một danh sách các bộ khi mẫu có các nhóm:\par
+\hspace{1cm}In [239]: regex.findall(text)\par
+\hspace{1cm}Out[239]:\par
+\hspace{1cm}[('dave', 'google', 'com'), \par
+\hspace{1cm} ('steve', 'gmail', 'com'), \par
+\hspace{1cm} ('rob', 'gmail', 'com'), \par
+\hspace{1cm} ('ryan', 'yahoo', 'com')]\par
+ sub cũng có quyền truy cập vào các nhóm trong mỗi trận đấu bằng các ký hiệu đặc biệt như $\setminus$ 1, $\setminus$ 2, v.v.:\par
+\hspace{1cm}In\hspace{3mm}[240]:\hspace{3mm} print regex.sub(r'Username: $\setminus$1, Domain: $\setminus$2, Suffix: $\setminus$3', text)\par
+\hspace{1cm}Dave Username: dave, Domain: google, Suffix: com\par
+\hspace{1cm}Steve Username: steve, Domain: gmail, Suffix: com\par
+\hspace{1cm}Rob Username: rob, Domain: gmail, Suffix: com\par
+\hspace{1cm}Ryan Username: ryan, Domain: yahoo, Suffix: com \par
+Còn nhiều điều nữa về các biểu thức chính quy trong Python, hầu hết trong số đó nằm ngoài phạm vi của cuốn sách. Để cung cấp cho bạn một hương vị, một biến thể trên biểu thức chính quy email ở trên đặt tên cho các nhóm phù hợp:\par
+$regex = re.compile(r"""(?P<username>[A-Z0-9._ \%+-]+)@(?P<domain>[A-Z0-9.-]+)\setminus .(?P<suffix>[A-Z]{2,4})""", flags=re.IGNORECASE|re.VERBOSE)$ \par
+ Đối tượng khớp được tạo bởi một biểu thức chính quy như vậy có thể tạo ra một lệnh tiện dụng với các tên nhóm được chỉ định:\par
+\hspace{1cm}In\hspace{3mm}[242]:\hspace{3mm} m = regex.match('wesm@bright.net')\par
+\hspace{1cm}In\hspace{3mm}[243]:\hspace{3mm} m.groupdict()\par
+\hspace{1cm}Out[243]:\hspace{3mm} {'domain': 'bright', 'suffix': 'net', 'username': 'wesm'} \par
+%\textit{Table 7-4.Phương thức biểu thức chính quy}
+\begin{table}[h]
+\centering
+    \begin{tabular}{l|p{10cm}}
+       \textbf{Argument}  & \textbf{Description} \\ \hline
+       findall, finditer  & Trả về tất cả các mẫu đối sánh không chồng chéo trong một chuỗi. findall trả về một danh sách tất cả các mẫu trong khi finditer trả về từng mẫu một từ một trình vòng lặp. \\ 
+       match &  Khớp  ở đầu chuỗi và tùy chọn phân đoạn các thành phần mẫu thành các nhóm. Nếu mẫu phù hợp, trả về một đối tượng phù hợp, nếu không thì Không.\\
+       search & Quét chuỗi để khớp với mẫu; trả lại một đối tượng phù hợp nếu vậy. Không giống như đối sánh, đối sánh có thể ở bất kỳ đâu trong chuỗi thay vì chỉ ở đầu. \\
+       split &  Chia chuỗi thành từng mảnh ở mỗi lần xuất hiện mẫu.\\
+        sub, subn & Replace all (sub) or first n occurrences (subn) of pattern in string with replacement expression. Use symbols $\setminus1$, $\setminus2$, ... to refer to match group elements in the replacement string. \par
+  \end{tabular}
+    \caption{Phương thức biểu thức chính quy}
+    \label{tab:table3}
+\end{table}
+
+%Vectorized string functions in pandas
+\section{Vector hóa chuỗi trong pandas}
+Việc dọn dẹp một tập hợp dữ liệu lộn xộn để phân tích thường đòi hỏi rất nhiều thao tác trộn chuỗi và chuẩn hóa. Để làm phức tạp thêm vấn đề, một cột chứa các chuỗi đôi khi sẽ bị thiếu dữ liệu:\par
+\hspace{1cm}In\hspace{3mm}[244]: data = \{'Dave': 'dave@google.com', 'Steve': 'steve@gmail.com',\par \hspace{18,5mm}.....:\hspace{15,5mm} 'Rob': 'rob@gmail.com', 'Wes': np.nannan\} \par
+\hspace{1cm}In\hspace{3mm}[245]:\hspace{3mm} data = Series(data) \par
+\hspace{1cm}In\hspace{3,15mm}[246]:\hspace{3mm} data  \hspace{3,05cm}  In\hspace{3mm}[247]:\hspace{3mm} data.isnull()  \par
+\hspace{0,995cm}Out[246]: \hspace{4,3cm}Out[247]:\par \hspace{1cm} \begin{tabular}{lr}
+        Dave  &  dave@google.com \\
+         Rob  &  rob@gmail.com \\
+         Steve &  steve@gmail.com\\
+        Wes  & NaN 
+    \end{tabular} 
+\hspace{1cm}\begin{tabular}{lr}
+        Dave  &  False \\
+         Rob  &  False\\
+        Steve &  False\\
+       Wes  & True
+    \end{tabular}
+    \par
+\end{tabular}\par
+Các phương thức chuỗi và biểu thức chính quy có thể được áp dụng (chuyển lambda hoặc hàm khác) cho từng giá trị bằng cách sử dụng data.map, nhưng nó sẽ không thành công trên NA. Để giải quyết vấn đề này, Sê-ri có các phương thức ngắn gọn cho các thao tác chuỗi bỏ qua các giá trị NA. Chúng được truy cập thông qua thuộc tính str của Series; ví dụ: chúng tôi có thể kiểm tra xem từng địa chỉ email có 'gmail' trong đó với str.contains:\par
+\hspace{1cm}In\hspace{3mm}[248]:\hspace{3mm} data.str.contains('gmail')\par
+\hspace{1cm}Out[248]:\hspace{3mm}\par
+\hspace{1cm}Dave False\par
+\hspace{1cm}Rob True\par
+\hspace{1cm}Steve True\par
+\hspace{1cm}Wes NaNNaN \par
+Cũng có thể sử dụng các biểu thức chính quy, cùng với bất k\hspace{3mm}ỳ tùy chọn lại nào như IGNORECASE:\par
+\hspace{1cm}In\hspace{3mm}[249]:\hspace{3mm} pattern\par
+\hspace{1cm}Out[249]:\hspace{3mm} '([A-Z0-9.\%+-]+)@([A-Z0-9.-]+).([A-Z]\{2,4\}) \par
+\hspace{1cm}In\hspace{3mm}[250]:\hspace{3mm} data.str.findall(pattern, flags=re.IGNORECASE)\par
+\hspace{1cm}Out[250]:\par
+\hspace{1cm}Dave[('dave', 'google', 'com')]\par
+\hspace{1cm}Rob[('rob', 'gmail', 'com')]\par
+\hspace{1cm}Steve[('steve', 'gmail', 'com')]\par
+\hspace{1cm}Wes NaN \par
+Có một số cách để thực hiện truy xuất phần tử được vector hóa. Sử dụng str.get hoặc lập chỉ mục vào thuộc tính str: \par
+\hspace{1cm}In\hspace{3mm}[251]:\hspace{3mm} matches = data.str.match(pattern, flags=re.IGNORECASE)\par
+\hspace{1cm}In\hspace{3mm}[252]:\hspace{3mm} matches\par
+\hspace{1cm}Out[252]:\par
+\hspace{1cm}Dave ('dave', 'google', 'com')\par
+\hspace{1cm}Rob ('rob', 'gmail', 'com')\par
+\hspace{1cm}Steve ('steve', 'gmail', 'com')\par
+\hspace{1cm}Wes \par
+%\textit{Bảng 7-5. Các phương thức chuỗi được vector hóa}\par
+\begin{table}[h]
+\centering
+    \begin{tabular}{l|p{10cm}}
+      \textbf{ Method}  & \textbf{Description} \\
+cat & Nối các chuỗi theo từng phần tử với dấu phân cách tùy chọn \\ 
+contains & Trả về mảng boolean nếu mỗi chuỗi chứa pattern/regex \\
+count  & Đếm số lần xuất hiện của mẫu  \\
+endswith, startswith     &  Tương đương với x.endswith(pattern) hoặc x.startswith(pattern) cho mỗi phần tử.\\
+findall   & Tính toán danh sách tất cả các lần xuất hiện của mẫu/regex cho mỗi chuỗi \\
+get & Lập chỉ mục vào từng phần tử (truy xuất phần tử thứ i)  \\
+join   &  Tham gia các chuỗi trong từng phần tử của Sê-ri với dấu phân cách đã qua \\
+len  & Tính độ dài của mỗi chuỗi \\
+lower, upper  & Chuyển đổi trường hợp; tương đương với x.lower() hoặc x.upper() cho mỗi phần tử. \\
+match   & Sử dụng re.match với biểu thức chính quy đã truyền trên mỗi phần tử, trả về các nhóm phù hợp dưới dạng danh sách. \\
+pad  & Thêm khoảng trắng vào bên trái, bên phải hoặc cả hai bên của chuỗi \\
+center   & Tương đương với pad(side=' both') \\
+repeat   & Nhân đôi giá trị; ví dụ s.str.repeat(3) tương đương với x * 3 cho mỗi chuỗi. \\
+replace    & Thay thế các lần xuất hiện của mẫu/regex bằng một số chuỗi khác \\
+ slice  &  Cắt từng chuỗi trong Sê-ri.\\
+ split &  Tách chuỗi trên dấu phân cách hoặc biểu thức chính quy\\
+ strip, rstrip, lstrip  & Cắt khoảng trắng, bao gồm cả dòng mới; tương đương với x.strip() (và rstrip,lstrip, tương ứng) cho mỗi phần tử.
+\end{tabular}
+    \caption{Các phương thức chuỗi được vector hóa}
+    \label{tab:table5e}
+\end{table}
