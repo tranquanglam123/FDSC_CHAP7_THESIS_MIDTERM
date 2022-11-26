@@ -6,6 +6,8 @@ Nội dung của bài báo cáo về chương số 7, Data Wrangling: Clean, Tra
 
 Nội dung chính của chương về các thao tác tiền xử lý dữ liệu trước khi bắt tay vào việc phân tích và sử dụng dữ liệu nhằm mang lại hiệu quả hơn
 
+Nhóm chúng em đã xin phép thầy giảm bớt phần làm PPT và đã được thầy chấp thuận, do đó phần bài nộp này sẽ không có PPT. Nhóm chúng em xin cảm ơn thầy!
+
 Thành viên trong nhóm : <br/>
     Trần Nguyễn Quang Lâm - 20139040 <br/>
     Tô Gia Huy - 20139003 <br/>
